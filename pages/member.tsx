@@ -30,6 +30,7 @@ export default function Member(props: MemberProps) {
       setMemberData(result.data);
       setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function Member(props: MemberProps) {
   });
 
   return (
-    <Layout>
+    <Layout title="SI-KOP-BANGKIT | Anggota">
       <div className="flex flex-col justify-between md:flex-row">
         <h2 className="text-3xl font-semibold text-slate-200">
           Daftar Anggota

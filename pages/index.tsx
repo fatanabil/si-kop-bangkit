@@ -1,3 +1,4 @@
+import Head from "next/head";
 import HomeLink from "../components/homelink";
 import Layout from "../components/layout";
 import Navbar from "../components/navbar";
@@ -5,6 +6,9 @@ import Navbar from "../components/navbar";
 export default function Home() {
   return (
     <>
+      <Head>
+        <title>SI-KOP-BANGKIT | Beranda</title>
+      </Head>
       <Navbar />
       <div className="min-h-screen bg-slate-800 flex flex-col justify-center items-center">
         <h1 className="text-white text-center text-3xl">
