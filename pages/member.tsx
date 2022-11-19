@@ -6,6 +6,7 @@ import URLS from "../utils/url";
 
 interface MemberProps {
   memberData: MemberType[];
+  agencyData: any[];
   baseURL: string;
 }
 
@@ -21,7 +22,7 @@ export default function Member(props: MemberProps) {
   const onSearchMemberDataHandler = async () => {
     setLoading(true);
     const response = await fetch(
-      `${baseURL}/api/member?nama=${nmAnggota}&limit=20`
+      `${baseURL}/api/member?nama=${nmAnggota}&instansi=${nmInstansi}&limit=20`
     );
     const result = await response.json();
 
@@ -62,9 +63,14 @@ export default function Member(props: MemberProps) {
           />
           <SearchButton loading={loading} onClick={onSearchMemberDataHandler} />
         </div>
-        {/* {agencyName && (
-            <AgencyNameList agencyName={agencyName} forSearch={true} />
-          )} */}
+        <datalist id="agency-name">
+          {props.agencyData &&
+            props.agencyData.map((agency) => (
+              <option key={agency._id} value={agency.nama_ins}>
+                {agency.nama_ins}
+              </option>
+            ))}
+        </datalist>
       </div>
       <hr className="my-8 border-2 border-slate-600 bg-none" />
       <div className="bg-slate-700 text-xs p-4 rounded-lg shadow-lg sm:p-8 sm:text-base">
@@ -110,14 +116,19 @@ export default function Member(props: MemberProps) {
 }
 
 export async function getServerSideProps() {
-  const response = await fetch(`${URLS.BASE_URL}/api/member?limit=20`, {
+  const memberResponse = await fetch(`${URLS.BASE_URL}/api/member?limit=20`, {
     method: "GET",
   });
-  const { data: memberData } = await response.json();
+  const agencyResponse = await fetch(`${URLS.BASE_URL}/api/agency`, {
+    method: "GET",
+  });
+  const { data: memberData } = await memberResponse.json();
+  const { data: agencyData } = await agencyResponse.json();
 
   return {
     props: {
       memberData,
+      agencyData,
       baseURL: URLS.BASE_URL,
     },
   };

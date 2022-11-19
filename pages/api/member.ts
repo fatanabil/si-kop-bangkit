@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { connect } from "../../middlewares/mongodb";
+import Instansi from "../../models/agencyModels";
 import Anggota from "../../models/memberModel";
 import MemberType from "../../types/memberType";
 
@@ -42,6 +43,25 @@ export default async function handler(
         .sort({ kode_ins: 1 })
         .limit(parseInt(limit as string));
     } else if (instansi) {
+      const { kode_ins } = await Instansi.findOne({ nama_ins: instansi });
+      memberData = await Anggota.aggregate([
+        {
+          $match: {
+            kode_ins,
+          },
+        },
+        {
+          $lookup: {
+            from: "instansi",
+            localField: "kode_ins",
+            foreignField: "kode_ins",
+            as: "detail_ins",
+          },
+        },
+        {
+          $unwind: "$detail_ins",
+        },
+      ]);
     } else {
       memberData = await Anggota.aggregate([
         {
