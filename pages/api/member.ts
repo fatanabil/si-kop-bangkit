@@ -80,8 +80,23 @@ export default async function handler(
         .limit(parseInt(limit as string));
     }
 
-    res
+    return res
       .status(200)
       .json({ data: memberData, msg: "success get data", error: false });
+  }
+
+  if (method === "POST") {
+    const { no_rek, nama_anggota, nama_instansi } = req.body;
+    const { kode_ins } = await Instansi.findOne({ nama_ins: nama_instansi });
+
+    return await Anggota.insertMany({ no_rek, nama_anggota, kode_ins })
+      .then((result) =>
+        res.status(200).json({ data: [], msg: "Sukses menambah data" })
+      )
+      .catch((err) =>
+        res
+          .status(500)
+          .json({ data: [], msg: "Gagal menambah data", err: err.message })
+      );
   }
 }
