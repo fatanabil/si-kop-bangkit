@@ -1,9 +1,28 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { useContext, useEffect, useState } from "react";
 import HomeLink from "../components/homelink";
-import Layout from "../components/layout";
 import Navbar from "../components/navbar";
+import AuthContext from "../contexts/authContext";
+import { AuthContextType } from "../types";
 
 export default function Home() {
+  const { authData } = useContext<AuthContextType>(AuthContext);
+  const [load, setLoad] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    setLoad(false);
+    if (!authData.isAuthenticated) {
+      router.push("/login");
+      setLoad(true);
+    }
+  }, []);
+
+  if (load) {
+    return null;
+  }
+
   return (
     <>
       <Head>
