@@ -12,6 +12,11 @@ export interface AgencyType {
   kode_ins: string;
 }
 
+export interface AuthContextType {
+  authData: AuthDataType;
+  changeAuthData: Function;
+}
+
 export interface AuthDataType {
   username: string;
   token: string;
