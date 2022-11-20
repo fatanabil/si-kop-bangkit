@@ -59,7 +59,7 @@ export default function Agency(props: AgencyProps) {
           <thead>
             <tr>
               <th className="w-8 uppercase">No.</th>
-              <th className="w-36 p-2 uppercase">kode Instasi</th>
+              <th className="w-36 p-2 uppercase">kode Instansi</th>
               <th className="w-80 p-2 uppercase text-left">Nama Instansi</th>
             </tr>
           </thead>
