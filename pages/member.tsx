@@ -3,7 +3,7 @@ import AddButton from "../components/buttons/addButton";
 import SearchButton from "../components/buttons/searchButton";
 import Layout from "../components/layout";
 import AddMemberModal from "../components/modals/addMemberModal";
-import MemberType from "../types/memberType";
+import { MemberType } from "../types";
 import URLS from "../utils/url";
 
 interface MemberProps {

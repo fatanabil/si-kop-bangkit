@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import AddButton from "../components/buttons/addButton";
 import SearchButton from "../components/buttons/searchButton";
 import Layout from "../components/layout";
-import InstansiType from "../types/instansiType";
+import { AgencyType } from "../types";
 import URLS from "../utils/url";
 
 interface AgencyProps {
-  agencyData: InstansiType[];
+  agencyData: AgencyType[];
   baseURL: string;
 }
 

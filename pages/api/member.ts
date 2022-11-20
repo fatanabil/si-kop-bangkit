@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { connect } from "../../middlewares/mongodb";
 import Instansi from "../../models/agencyModels";
 import Anggota from "../../models/memberModel";
-import MemberType from "../../types/memberType";
+import { MemberType } from "../../types";
 
 export default async function handler(
   req: NextApiRequest,
