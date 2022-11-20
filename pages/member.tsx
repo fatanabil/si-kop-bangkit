@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import AddButton from "../components/buttons/addButton";
 import SearchButton from "../components/buttons/searchButton";
 import Layout from "../components/layout";
+import AddMemberModal from "../components/modals/addMemberModal";
 import MemberType from "../types/memberType";
 import URLS from "../utils/url";
 
@@ -18,6 +20,7 @@ export default function Member(props: MemberProps) {
   const [nmAnggota, setNmAnggota] = useState<string>("");
   const [nmInstansi, setNmInstansi] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [addOpen, setAddOpen] = useState<boolean>(false);
 
   const onSearchMemberDataHandler = async () => {
     setLoading(true);
@@ -48,12 +51,15 @@ export default function Member(props: MemberProps) {
           Daftar Anggota
         </h2>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row md:flex-row sm:mt-4 md:mt-4 lg:mt-0">
-          {/* <AddButton onClick={setIsOpen}>Tambah Anggota</AddButton> */}
+          <AddButton onClick={() => setAddOpen(!addOpen)}>
+            Tambah Anggota
+          </AddButton>
           <input
             type="text"
             placeholder="Cari Nama Anggota"
             className="w-full px-4 py-2 rounded-md bg-slate-600 shadow-md shadow-slate-800 text-slate-200 outline-none focus:ring-2 focus:ring-slate-500 transition-all sm:mt-0 sm:w-56"
-            onChange={(ev) => setNmAnggota(ev.target.value)}
+            onChange={(ev) => setNmAnggota(ev.target.value.toUpperCase())}
+            value={nmAnggota}
           />
           <input
             inlist="select"
@@ -61,6 +67,7 @@ export default function Member(props: MemberProps) {
             placeholder="Cari berdasarkan instansi"
             className="ml-0 w-full px-4 py-2 rounded-md bg-slate-600 shadow-md shadow-slate-800 text-slate-200 outline-none focus:ring-2 focus:ring-slate-500 transition-all sm:mt-0 sm:w-64"
             onChange={(ev) => setNmInstansi(ev.target.value)}
+            value={nmInstansi}
           />
           <SearchButton loading={loading} onClick={onSearchMemberDataHandler} />
         </div>
@@ -112,6 +119,13 @@ export default function Member(props: MemberProps) {
           </tbody>
         </table>
       </div>
+      {addOpen && (
+        <AddMemberModal
+          baseURL={props.baseURL}
+          addOpen={addOpen}
+          setAddOpen={setAddOpen}
+        />
+      )}
     </Layout>
   );
 }
