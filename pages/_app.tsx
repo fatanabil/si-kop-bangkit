@@ -1,7 +1,7 @@
-import "../styles/globals.css";
 import type { AppProps } from "next/app";
+import { useMemo, useState } from "react";
 import { AuthContextProvider } from "../contexts/authContext";
-import { useState, useMemo } from "react";
+import "../styles/globals.css";
 import { AuthDataType } from "../types";
 
 export default function App({ Component, pageProps }: AppProps) {
