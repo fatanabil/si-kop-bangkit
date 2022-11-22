@@ -1,10 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { connect } from "../../middlewares/mongodb";
 import Instansi from "../../models/agencyModels";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  await connect();
+
   const {
     query: { nama_ins },
     method,
