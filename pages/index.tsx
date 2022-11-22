@@ -4,22 +4,20 @@ import { useContext, useEffect, useState } from "react";
 import HomeLink from "../components/homelink";
 import Navbar from "../components/navbar";
 import AuthContext from "../contexts/authContext";
-import { AuthContextType } from "../types";
 
 export default function Home() {
-  const { authData } = useContext<AuthContextType>(AuthContext);
-  const [load, setLoad] = useState(true);
+  const { authData } = useContext(AuthContext);
   const router = useRouter();
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    setLoad(false);
-    if (!authData.isAuthenticated) {
+    if (!authData.isAuthenticated && !initializing) {
       router.push("/login");
-      setLoad(true);
     }
-  }, []);
+    setInitializing(false);
+  }, [authData.isAuthenticated, initializing]);
 
-  if (load) {
+  if (initializing || !authData.isAuthenticated) {
     return null;
   }
 
