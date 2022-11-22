@@ -22,3 +22,9 @@ export interface AuthDataType {
   token: string;
   isAuthenticated: boolean;
 }
+
+export interface ResponseJSONType {
+  data: any[];
+  msg: string;
+  err: Object | string | boolean;
+}
