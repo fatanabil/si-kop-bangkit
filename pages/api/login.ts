@@ -1,11 +1,26 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Users from "../../models/userModel";
 import bcrypt from "bcryptjs";
+import TokenGenerator from "../../utils/tokenGenerator";
+import { connect } from "../../middlewares/mongodb";
+
+const tknGen = new TokenGenerator(
+  process.env.SECRET_KEY as string,
+  process.env.SECRET_KEY as string,
+  {
+    keyid: "1",
+    noTimestamp: false,
+    expiresIn: process.env.EXPIRED_IN,
+    notBefore: "0s",
+  }
+);
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  await connect();
+
   const { method } = req;
 
   if (method === "POST") {
@@ -19,8 +34,13 @@ export default async function handler(
         .json({ data: [], msg: "Password Salah", err: true });
     }
 
+    const token = tknGen.sign(
+      { id: user.username },
+      { audience: "userAud", issuer: "notAtAll", jwtid: "1", subject: "user" }
+    );
+
     return res
       .status(200)
-      .json({ data: [], msg: "Terautentikasi", err: false });
+      .json({ data: { token, username }, msg: "Terautentikasi", err: false });
   }
 }
