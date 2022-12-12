@@ -1,10 +1,12 @@
 import type { AppProps } from "next/app";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/router";
+import { useMemo, useState, useEffect } from "react";
 import { AuthContextProvider } from "../contexts/authContext";
 import "../styles/globals.css";
 import { AuthDataType } from "../types";
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
   const [authData, setAuthData] = useState({
     username: "",
     token: "",
@@ -26,6 +28,12 @@ export default function App({ Component, pageProps }: AppProps) {
       changeAuthData,
     };
   }, [authData]);
+
+  useEffect(() => {
+    if (!authData.isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authData.isAuthenticated]);
 
   return (
     <AuthContextProvider value={authDataContextValue}>
