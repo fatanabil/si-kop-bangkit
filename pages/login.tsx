@@ -33,7 +33,7 @@ export default function Login(props: LoginProps) {
     const result = await login.json();
     if (login.ok) {
       if (result.data.token) {
-        const { username, token } = result;
+        const { username, token } = result.data;
         changeAuthData({ username, token, isAuthenticated: true });
         router.replace("/");
       }
@@ -75,7 +75,11 @@ export default function Login(props: LoginProps) {
               <input
                 type="text"
                 id="username"
-                className={`bg-slate-600 rounded-md px-4 py-2 text-white outline-none focus:ring-2 focus:ring-slate-500 transition-all`}
+                className={`bg-slate-600 rounded-md px-4 py-2 ${
+                  failed.err
+                    ? "text-red-400 focus:ring-red-400"
+                    : "text-white focus:ring-slate-500"
+                } outline-none focus:ring-2 transition-all`}
                 value={username}
                 onChange={(ev) => setUsername(ev.target.value)}
                 required={true}
@@ -88,7 +92,11 @@ export default function Login(props: LoginProps) {
               <input
                 type="password"
                 id="password"
-                className={`bg-slate-600 rounded-md px-4 py-2 text-white outline-none focus:ring-2 focus:ring-slate-500 transition-all`}
+                className={`bg-slate-600 rounded-md px-4 py-2 ${
+                  failed.err
+                    ? "text-red-400 focus:ring-red-400"
+                    : "text-white focus:ring-slate-500"
+                } outline-none focus:ring-2 transition-all`}
                 value={password}
                 onChange={(ev) => setPassword(ev.target.value)}
                 required={true}
