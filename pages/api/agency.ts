@@ -62,5 +62,29 @@ export default async function handler(
     return res
       .status(200)
       .json({ data: agencyData, msg: "Success get data", error: false });
+  } else if (method === "POST") {
+    const { kode_ins, nama_ins } = req.body;
+
+    if (!nama_ins)
+      return res
+        .status(500)
+        .json({ data: [], msg: "Nama instansi kosong", err: true });
+
+    const isDup = await Instansi.findOne({ nama_ins });
+    if (isDup)
+      return res
+        .status(500)
+        .json({ data: [], msg: "Nama instansi sudah terdaftar", err: true });
+
+    const addIns = await Instansi.insertMany({ kode_ins, nama_ins });
+
+    if (!addIns)
+      return res
+        .status(500)
+        .json({ data: [], msg: "Gagal menambah data", err: true });
+
+    return res
+      .status(201)
+      .json({ data: [], msg: "Sukses menambah data", err: false });
   }
 }
