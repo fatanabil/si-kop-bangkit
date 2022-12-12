@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 export default class TokenGenerator {
   private secretOrPrivateKey: string;
@@ -25,10 +25,19 @@ export default class TokenGenerator {
       token,
       this.secretOrPublicKey,
       refreshOptions.verify
-    );
+    ) as JwtPayload;
+    delete payload.iat;
+    delete payload.exp;
+    delete payload.nbf;
+    delete payload.jti;
     const jwtSignOptions = Object.assign({}, this.options, {
       jwtid: refreshOptions.jwtid,
     });
-    return jwt.sign(payload, this.secretOrPrivateKey, jwtSignOptions);
+    const refreshToken = jwt.sign(
+      payload,
+      this.secretOrPrivateKey,
+      jwtSignOptions
+    );
+    return refreshToken;
   }
 }
