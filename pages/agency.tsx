@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import AddButton from "../components/buttons/addButton";
-import SearchButton from "../components/buttons/searchButton";
 import Layout from "../components/layout";
 import { AgencyType } from "../types";
 import URLS from "../utils/url";
+import { useDebounce } from "use-debounce";
+import AuthContext from "../contexts/authContext";
+import { useRouter } from "next/router";
 
 interface AgencyProps {
   agencyData: AgencyType[];
@@ -11,30 +13,38 @@ interface AgencyProps {
 }
 
 export default function Agency(props: AgencyProps) {
+  const router = useRouter();
+  const { authData, changeAuthData } = useContext(AuthContext);
   const [agencyData, setAgencyData] = useState<any[]>(() => props.agencyData);
   const [nmInstansi, setNmInstansi] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [insDe] = useDebounce(nmInstansi, 500);
 
-  const onSearchAgencyDataHandler = async () => {
-    setLoading(true);
+  const onSearchAgencyDataHandler = async (val1: string) => {
     const response = await fetch(
-      `${props.baseURL}/api/agency?nama_ins=${nmInstansi}`
+      `${props.baseURL}/api/agency?nama_ins=${val1}`,
+      {
+        headers: {
+          authorization: authData.token,
+        },
+      }
     );
-    const result = await response.json();
+    const { data, refreshToken } = await response.json();
     if (response.ok) {
-      setAgencyData(result.data);
-      setLoading(false);
+      if (refreshToken) {
+        changeAuthData({ ...authData, token: refreshToken });
+      }
+      setAgencyData(data);
+    } else {
+      if (response.status === 401) {
+        changeAuthData({ username: "", token: "", isAuthenticated: false });
+        return router.replace("/login");
+      }
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    document.onkeydown = async (ev) => {
-      if (ev.key === "Enter") {
-        await onSearchAgencyDataHandler();
-      }
-    };
-  });
+    onSearchAgencyDataHandler(insDe);
+  }, [insDe]);
 
   return (
     <Layout title="SI-KOP-BANGKIT | Instansi">
@@ -48,9 +58,9 @@ export default function Agency(props: AgencyProps) {
             type="text"
             placeholder="Cari Nama Instansi"
             className="px-4 py-2 rounded-md bg-slate-600 shadow-md shadow-slate-800 text-slate-200 outline-none focus:ring-2 focus:ring-slate-500 transition-all sm:mt-0"
-            onChange={(ev) => setNmInstansi(ev.target.value)}
+            value={nmInstansi}
+            onChange={(ev) => setNmInstansi(ev.target.value.toUpperCase())}
           />
-          <SearchButton onClick={onSearchAgencyDataHandler} loading={loading} />
         </div>
       </div>
       <hr className="my-8 border-2 border-slate-600 bg-none" />
@@ -64,24 +74,25 @@ export default function Agency(props: AgencyProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
-            {agencyData.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="text-center font-semibold">
-                  Data Tidak Ditemukan
-                </td>
-              </tr>
-            ) : (
-              agencyData.map((agency, index) => (
-                <tr
-                  key={agency.kode_ins}
-                  className="hover:bg-slate-600 transition-all duration-100"
-                >
-                  <td className="text-center py-2">{++index}</td>
-                  <td className="text-center">{agency.kode_ins}</td>
-                  <td className="">{agency.nama_ins}</td>
+            {agencyData &&
+              (agencyData.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center font-semibold">
+                    Data Tidak Ditemukan
+                  </td>
                 </tr>
-              ))
-            )}
+              ) : (
+                agencyData.map((agency, index) => (
+                  <tr
+                    key={agency.kode_ins}
+                    className="hover:bg-slate-600 transition-all duration-100"
+                  >
+                    <td className="text-center py-2">{++index}</td>
+                    <td className="text-center">{agency.kode_ins}</td>
+                    <td className="">{agency.nama_ins}</td>
+                  </tr>
+                ))
+              ))}
           </tbody>
         </table>
       </div>
@@ -90,12 +101,8 @@ export default function Agency(props: AgencyProps) {
 }
 
 export async function getServerSideProps() {
-  const response = await fetch(`${URLS.BASE_URL}/api/agency`);
-  const { data: agencyData } = await response.json();
-
   return {
     props: {
-      agencyData,
       baseURL: URLS.BASE_URL,
     },
   };
