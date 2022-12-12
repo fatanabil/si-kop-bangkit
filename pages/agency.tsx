@@ -6,28 +6,26 @@ import URLS from "../utils/url";
 import { useDebounce } from "use-debounce";
 import AuthContext from "../contexts/authContext";
 import { useRouter } from "next/router";
+import AddAgencyModal from "../components/modals/addAgencyModal";
 
 interface AgencyProps {
-  agencyData: AgencyType[];
   baseURL: string;
 }
 
-export default function Agency(props: AgencyProps) {
+export default function Agency({ baseURL }: AgencyProps) {
   const router = useRouter();
   const { authData, changeAuthData } = useContext(AuthContext);
-  const [agencyData, setAgencyData] = useState<any[]>(() => props.agencyData);
+  const [agencyData, setAgencyData] = useState<AgencyType[]>([]);
   const [nmInstansi, setNmInstansi] = useState<string>("");
   const [insDe] = useDebounce(nmInstansi, 500);
+  const [openAddModal, setOpenAddModal] = useState(false);
 
   const onSearchAgencyDataHandler = async (val1: string) => {
-    const response = await fetch(
-      `${props.baseURL}/api/agency?nama_ins=${val1}`,
-      {
-        headers: {
-          authorization: authData.token,
-        },
-      }
-    );
+    const response = await fetch(`${baseURL}/api/agency?nama_ins=${val1}`, {
+      headers: {
+        authorization: authData.token,
+      },
+    });
     const { data, refreshToken } = await response.json();
     if (response.ok) {
       if (refreshToken) {
@@ -53,7 +51,9 @@ export default function Agency(props: AgencyProps) {
           Daftar Instansi
         </h2>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row md:flex-row sm:mt-4 md:mt-4 lg:mt-0">
-          <AddButton>Tambah Instansi</AddButton>
+          <AddButton onClick={() => setOpenAddModal(true)}>
+            Tambah Instansi
+          </AddButton>
           <input
             type="text"
             placeholder="Cari Nama Instansi"
@@ -96,6 +96,13 @@ export default function Agency(props: AgencyProps) {
           </tbody>
         </table>
       </div>
+      {openAddModal && (
+        <AddAgencyModal
+          setOpenAddModal={setOpenAddModal}
+          lastId={agencyData[agencyData.length - 1].kode_ins}
+          baseURL={baseURL}
+        />
+      )}
     </Layout>
   );
 }
