@@ -28,3 +28,10 @@ export interface ResponseJSONType {
   msg: string;
   err: Object | string | boolean;
 }
+
+export interface MutationType {
+  no_rek: MemberType;
+  dari: AgencyType;
+  ke: AgencyType;
+  bulan: string;
+}
