@@ -21,11 +21,9 @@ export default function Member({ baseURL }: MemberProps) {
   const [nmInstansi, setNmInstansi] = useState<string>("");
   const [aggDe] = useDebounce(nmAnggota, 500);
   const [insDe] = useDebounce(nmInstansi, 500);
-  const [loading, setLoading] = useState<boolean>(false);
   const [addOpen, setAddOpen] = useState<boolean>(false);
 
   const onSearchMemberDataHandler = async (val1: string, val2: string) => {
-    setLoading(true);
     const response = await fetch(
       `${baseURL}/api/member?nama=${val1}&instansi=${val2}&limit=20`,
       {
@@ -43,9 +41,12 @@ export default function Member({ baseURL }: MemberProps) {
         changeAuthData({ ...authData, token: refreshToken });
       }
       setMemberData(data);
-      setLoading(false);
+    } else {
+      if (response.status === 401) {
+        changeAuthData({ username: "", token: "", isAuthenticated: false });
+        return router.replace("/login");
+      }
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -53,28 +54,6 @@ export default function Member({ baseURL }: MemberProps) {
   }, [aggDe, insDe]);
 
   useEffect(() => {
-    const getMemberData = async () => {
-      const response = await fetch(`${baseURL}/api/member?limit=20`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: authData.token,
-        },
-      });
-      const { data, refreshToken } = await response.json();
-      if (response.ok) {
-        if (refreshToken) {
-          changeAuthData({ ...authData, token: refreshToken });
-        }
-        setMemberData(data);
-      } else {
-        if (response.status === 401) {
-          changeAuthData({ username: "", token: "", isAuthenticated: false });
-          return router.replace("/login");
-        }
-      }
-    };
-
     const getAgencyData = async () => {
       const response = await fetch(`${baseURL}/api/agency`, {
         method: "GET",
@@ -88,7 +67,6 @@ export default function Member({ baseURL }: MemberProps) {
       }
     };
 
-    getMemberData();
     getAgencyData();
   }, []);
 
