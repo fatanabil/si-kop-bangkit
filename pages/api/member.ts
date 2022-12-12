@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { connect } from "../../middlewares/mongodb";
+import verifyToken from "../../middlewares/tokenVerify";
 import Instansi from "../../models/agencyModels";
 import Anggota from "../../models/memberModel";
 import { MemberType } from "../../types";
@@ -12,9 +13,27 @@ export default async function handler(
 
   const {
     query: { nama, instansi, limit },
+    headers,
     method,
   } = req;
 
+  const token = headers.authorization as string;
+  let refreshToken: string = "";
+
+  const result = verifyToken({ token });
+
+  if (result?.data?.refreshToken) {
+    refreshToken = result.data.refreshToken;
+  }
+
+  if (result?.err) {
+    if (result.msg === "Unauthorized") {
+      return res.status(401).json({ data: [], msg: "Unauthorized", err: true });
+    }
+    return res.status(500).json({ data: [], msg: "Token expired", err: true });
+  }
+
+  // Request handler
   if (method === "GET") {
     let memberData: MemberType[] = [];
 
@@ -78,6 +97,15 @@ export default async function handler(
       ])
         .sort({ kode_ins: 1 })
         .limit(parseInt(limit as string));
+    }
+
+    if (refreshToken) {
+      return res.status(200).json({
+        data: memberData,
+        msg: "Success get data",
+        error: false,
+        refreshToken,
+      });
     }
 
     return res
