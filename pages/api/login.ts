@@ -27,7 +27,13 @@ export default async function handler(
     const { username, password } = req.body;
     const user = await Users.findOne({ username });
 
+    if (!user)
+      return res
+        .status(500)
+        .json({ data: [], msg: "Username tidak ditemukan", err: true });
+
     const passwordIsValid = bcrypt.compareSync(password, user.password);
+
     if (!passwordIsValid) {
       return res
         .status(401)
