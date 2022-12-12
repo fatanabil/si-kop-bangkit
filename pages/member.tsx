@@ -1,48 +1,96 @@
-import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useContext, useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
 import AddButton from "../components/buttons/addButton";
-import SearchButton from "../components/buttons/searchButton";
 import Layout from "../components/layout";
 import AddMemberModal from "../components/modals/addMemberModal";
-import { MemberType } from "../types";
+import AuthContext from "../contexts/authContext";
+import { AgencyType, MemberType } from "../types";
 import URLS from "../utils/url";
 
 interface MemberProps {
-  memberData: MemberType[];
-  agencyData: any[];
   baseURL: string;
 }
 
-export default function Member(props: MemberProps) {
-  const { baseURL } = props;
-  const [memberData, setMemberData] = useState<MemberType[]>(
-    () => props.memberData
-  );
+export default function Member({ baseURL }: MemberProps) {
+  const router = useRouter();
+  const { authData, changeAuthData } = useContext(AuthContext);
+  const [memberData, setMemberData] = useState<MemberType[]>([]);
+  const [agencyData, setAgencyData] = useState<AgencyType[]>([]);
   const [nmAnggota, setNmAnggota] = useState<string>("");
   const [nmInstansi, setNmInstansi] = useState<string>("");
+  const [aggDe] = useDebounce(nmAnggota, 500);
+  const [insDe] = useDebounce(nmInstansi, 500);
   const [loading, setLoading] = useState<boolean>(false);
   const [addOpen, setAddOpen] = useState<boolean>(false);
 
-  const onSearchMemberDataHandler = async () => {
+  const onSearchMemberDataHandler = async (val1: string, val2: string) => {
     setLoading(true);
     const response = await fetch(
-      `${baseURL}/api/member?nama=${nmAnggota}&instansi=${nmInstansi}&limit=20`
+      `${baseURL}/api/member?nama=${val1}&instansi=${val2}&limit=20`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: authData.token,
+        },
+      }
     );
-    const result = await response.json();
+    const { data, refreshToken } = await response.json();
 
     if (response.ok) {
-      setMemberData(result.data);
+      if (refreshToken) {
+        changeAuthData({ ...authData, token: refreshToken });
+      }
+      setMemberData(data);
       setLoading(false);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    document.onkeydown = async (ev) => {
-      if (ev.key === "Enter") {
-        await onSearchMemberDataHandler();
+    onSearchMemberDataHandler(aggDe, insDe);
+  }, [aggDe, insDe]);
+
+  useEffect(() => {
+    const getMemberData = async () => {
+      const response = await fetch(`${baseURL}/api/member?limit=20`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: authData.token,
+        },
+      });
+      const { data, refreshToken } = await response.json();
+      if (response.ok) {
+        if (refreshToken) {
+          changeAuthData({ ...authData, token: refreshToken });
+        }
+        setMemberData(data);
+      } else {
+        if (response.status === 401) {
+          changeAuthData({ username: "", token: "", isAuthenticated: false });
+          return router.replace("/login");
+        }
       }
     };
-  });
+
+    const getAgencyData = async () => {
+      const response = await fetch(`${baseURL}/api/agency`, {
+        method: "GET",
+        headers: {
+          authorization: authData.token,
+        },
+      });
+      const { data } = await response.json();
+      if (response.ok) {
+        setAgencyData(data);
+      }
+    };
+
+    getMemberData();
+    getAgencyData();
+  }, []);
 
   return (
     <Layout title="SI-KOP-BANGKIT | Anggota">
@@ -69,11 +117,10 @@ export default function Member(props: MemberProps) {
             onChange={(ev) => setNmInstansi(ev.target.value)}
             value={nmInstansi}
           />
-          <SearchButton loading={loading} onClick={onSearchMemberDataHandler} />
         </div>
         <datalist id="agency-name">
-          {props.agencyData &&
-            props.agencyData.map((agency) => (
+          {agencyData &&
+            agencyData.map((agency) => (
               <option key={agency._id} value={agency.nama_ins}>
                 {agency.nama_ins}
               </option>
@@ -121,7 +168,7 @@ export default function Member(props: MemberProps) {
       </div>
       {addOpen && (
         <AddMemberModal
-          baseURL={props.baseURL}
+          baseURL={baseURL}
           addOpen={addOpen}
           setAddOpen={setAddOpen}
         />
@@ -131,19 +178,8 @@ export default function Member(props: MemberProps) {
 }
 
 export async function getServerSideProps() {
-  const memberResponse = await fetch(`${URLS.BASE_URL}/api/member?limit=20`, {
-    method: "GET",
-  });
-  const agencyResponse = await fetch(`${URLS.BASE_URL}/api/agency`, {
-    method: "GET",
-  });
-  const { data: memberData } = await memberResponse.json();
-  const { data: agencyData } = await agencyResponse.json();
-
   return {
     props: {
-      memberData,
-      agencyData,
       baseURL: URLS.BASE_URL,
     },
   };
