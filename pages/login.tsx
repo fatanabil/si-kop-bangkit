@@ -69,7 +69,12 @@ export default function Login(props: LoginProps) {
             onSubmit={(ev) => onLoginHandler(ev)}
           >
             <div className="flex flex-col gap-3 mb-4">
-              <label htmlFor="username" className="text-lg text-white">
+              <label
+                htmlFor="username"
+                className={`text-lg ${
+                  failed.err ? "text-red-400" : "text-white"
+                } transition-all`}
+              >
                 Username
               </label>
               <input
@@ -86,7 +91,12 @@ export default function Login(props: LoginProps) {
               />
             </div>
             <div className="flex flex-col gap-3 mb-4">
-              <label htmlFor="password" className="text-lg text-white">
+              <label
+                htmlFor="password"
+                className={`text-lg ${
+                  failed.err ? "text-red-400" : "text-white"
+                } transition-all`}
+              >
                 Password
               </label>
               <input
