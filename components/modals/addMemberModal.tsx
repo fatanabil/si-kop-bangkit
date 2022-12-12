@@ -1,5 +1,6 @@
 import CloseButton from "../buttons/closeButton";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useContext } from "react";
+import AuthContext from "../../contexts/authContext";
 
 interface AddMemberModalProps {
   addOpen: boolean;
@@ -12,6 +13,7 @@ export default function AddMemberModal({
   setAddOpen,
   baseURL,
 }: AddMemberModalProps) {
+  const { authData } = useContext(AuthContext);
   const [noRek, setNoRek] = useState<string>("0000000000");
   const [nmAnggota, setNmAnggota] = useState<string>("");
   const [nmInstansi, setNmInstansi] = useState<string>("");
@@ -21,7 +23,10 @@ export default function AddMemberModal({
 
     const post = await fetch(`${baseURL}/api/member`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        authorization: authData.token,
+      },
       body: JSON.stringify({
         no_rek: noRek,
         nama_anggota: nmAnggota,
