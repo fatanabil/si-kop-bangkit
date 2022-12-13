@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { connect } from "../../middlewares/mongodb";
 import verifyToken from "../../middlewares/tokenVerify";
-import Instansi from "../../models/agencyModels";
+import Instansi from "../../models/agencyModel";
 import Anggota from "../../models/memberModel";
 import { MemberType } from "../../types";
 
