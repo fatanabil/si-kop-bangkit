@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { connect } from "../../middlewares/mongodb";
 import verifyToken from "../../middlewares/tokenVerify";
+import Instansi from "../../models/agencyModel";
+import Anggota from "../../models/memberModel";
 import Mutasi from "../../models/mutationModel";
+import { AnggotaDataType, MutationDataType } from "../../types";
 import months from "../../utils/bulan";
 
 export default async function handler(
@@ -85,5 +88,85 @@ export default async function handler(
     return res
       .status(200)
       .json({ data: mutData, msg: "Success get data", err: false });
+  } else if (method === "PATCH") {
+    const { mutationData } = req.body;
+
+    if (mutationData.length > 0) {
+      const checkName = mutationData.map(async (data: MutationDataType) => {
+        const findName: AnggotaDataType[] = await Anggota.find({
+          nama_anggota: {
+            $regex: ".*" + data.nama + ".*",
+          },
+          kode_ins: data.dari,
+        }).select({ _id: 0, kode_ins: 0 });
+        const agencyName = await Instansi.findOne({ kode_ins: data.dari });
+        if (findName.length < 1) {
+          return {
+            nama: data.nama,
+            dari: agencyName.nama_ins,
+            empty: true,
+            dup: false,
+          };
+        } else if (findName.length > 1) {
+          return {
+            nama: data.nama,
+            dari: agencyName.nama_ins,
+            empty: false,
+            dup: true,
+          };
+        }
+        return {
+          no_rek: findName[0].no_rek,
+          dari: data.dari,
+          ke: data.ke,
+          bulan: data.bulan,
+        };
+      });
+
+      return Promise.all(checkName)
+        .then((result) => {
+          const errData = result.filter((data) => data.empty || data.dup);
+          if (errData.length > 0) {
+            res.status(400).json({
+              data: { err: errData },
+              msg: "Kesalahan input data",
+              err: true,
+            });
+          } else {
+            try {
+              const addMut = result.map(async (data) => {
+                await Mutasi.insertMany({
+                  no_rek: data.no_rek,
+                  dari: data.dari,
+                  ke: data.ke,
+                  bulan: new Date(data.bulan),
+                });
+
+                await Anggota.updateMany(
+                  { no_rek: data.no_rek },
+                  {
+                    $set: {
+                      kode_ins: data.ke,
+                    },
+                  }
+                );
+              });
+
+              Promise.all(addMut).then(() => {
+                res
+                  .status(201)
+                  .json({ data: [], msg: "Sukses menambah data", err: false });
+              });
+            } catch (err) {
+              res
+                .status(500)
+                .json({ data: { err }, msg: "Gagal menambah data", err: true });
+            }
+          }
+        })
+        .catch((err) => console.log(err));
+    }
+
+    return res.status(500).json({ data: [], msg: "Data kosong", err: true });
   }
 }
