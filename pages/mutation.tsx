@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import AddButton from "../components/buttons/addButton";
 import Layout from "../components/layout";
@@ -11,6 +12,7 @@ interface MutationProps {
 }
 
 export default function Mutation({ baseURL }: MutationProps) {
+  const router = useRouter();
   const { authData, changeAuthData } = useContext(AuthContext);
   const [mutData, setMutData] = useState<MutationType[]>([]);
   const [bulan, setBulan] = useState(
@@ -40,6 +42,11 @@ export default function Mutation({ baseURL }: MutationProps) {
       }
       setMutData(data);
       setRecord(data.length);
+    } else {
+      if (response.status === 401) {
+        changeAuthData({ username: "", token: "", isAuthenticated: false });
+        return router.replace("/login");
+      }
     }
   };
 
@@ -55,6 +62,11 @@ export default function Mutation({ baseURL }: MutationProps) {
         changeAuthData({ ...authData, token: refreshToken });
       }
       setAgencyName(data);
+    } else {
+      if (response.status === 401) {
+        changeAuthData({ username: "", token: "", isAuthenticated: false });
+        return router.replace("/login");
+      }
     }
   };
 
