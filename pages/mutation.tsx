@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import AddButton from "../components/buttons/addButton";
 import Layout from "../components/layout";
+import AddMutationModal from "../components/modals/addMutationModal";
 import AuthContext from "../contexts/authContext";
-import { MutationType } from "../types";
+import { AgencyType, MutationType } from "../types";
 import URLS from "../utils/url";
 
 interface MutationProps {
@@ -21,6 +22,8 @@ export default function Mutation({ baseURL }: MutationProps) {
       }`
   );
   const [record, setRecord] = useState(0);
+  const [openModal, setOpenModal] = useState(false);
+  const [agencyName, setAgencyName] = useState<AgencyType[]>([]);
 
   const onSearchMutationData = async () => {
     const response = await fetch(`${baseURL}/api/mutation?bulan=${bulan}`, {
@@ -40,16 +43,37 @@ export default function Mutation({ baseURL }: MutationProps) {
     }
   };
 
+  const getAgencyNameData = async () => {
+    const response = await fetch(`${baseURL}/api/agency`, {
+      headers: {
+        authorization: authData.token,
+      },
+    });
+    const { data, refreshToken } = await response.json();
+    if (response.ok) {
+      if (refreshToken) {
+        changeAuthData({ ...authData, token: refreshToken });
+      }
+      setAgencyName(data);
+    }
+  };
+
   useEffect(() => {
     onSearchMutationData();
   }, [bulan]);
+
+  useEffect(() => {
+    getAgencyNameData();
+  }, []);
 
   return (
     <Layout title="SI-KOP-BANGKIT | Mutasi">
       <div className="flex flex-col justify-between sm:flex-row">
         <h2 className="text-3xl font-semibold text-slate-200">Daftar Mutasi</h2>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row md:flex-row sm:mt-4 md:mt-4 lg:mt-0">
-          <AddButton onClick={() => {}}>Tambah Mutasi</AddButton>
+          <AddButton onClick={() => setOpenModal(true)}>
+            Tambah Mutasi
+          </AddButton>
           <input
             type="month"
             className="px-4 py-2 outline-none bg-slate-600 text-slate-200 rounded-md focus:ring-2 focus:ring-slate-400 transition-all sm:mt-0"
@@ -100,6 +124,13 @@ export default function Mutation({ baseURL }: MutationProps) {
           </tbody>
         </table>
       </div>
+      {openModal && (
+        <AddMutationModal
+          setOpenModal={setOpenModal}
+          agencyName={agencyName}
+          baseURL={baseURL}
+        />
+      )}
     </Layout>
   );
 }
