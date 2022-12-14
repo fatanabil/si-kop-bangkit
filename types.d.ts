@@ -54,3 +54,16 @@ export interface MutationDataErrType {
   empty: boolean;
   dup: boolean;
 }
+
+export interface InvoiceDataType {
+  no_rek: string;
+  nama_anggota: string;
+  jumlah: number;
+}
+
+export interface InvoiceListedDataType {
+  no_rek: string;
+  nama_anggota: string;
+  detail_ins: AgencyType;
+  jumlah: number;
+}
