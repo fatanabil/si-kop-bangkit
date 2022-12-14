@@ -35,3 +35,22 @@ export interface MutationType {
   ke: AgencyType;
   bulan: string;
 }
+
+export interface MutationDataType {
+  nama: string;
+  dari: string;
+  ke: string;
+  bulan: string;
+}
+
+export interface AnggotaDataType {
+  no_rek: string;
+  nama_anggota: string;
+}
+
+export interface MutationDataErrType {
+  nama: string;
+  dari: string;
+  empty: boolean;
+  dup: boolean;
+}
