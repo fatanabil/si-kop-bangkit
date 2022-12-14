@@ -23,6 +23,10 @@ export default async function handler(
 
   const { method } = req;
 
+  if (method === "GET") {
+    res.status(200).json({ msg: "OK" });
+  }
+
   if (method === "POST") {
     const { username, password } = req.body;
     const user = await Users.findOne({ username });

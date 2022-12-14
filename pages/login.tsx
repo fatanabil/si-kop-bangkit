@@ -125,7 +125,9 @@ export default function Login(props: LoginProps) {
   );
 }
 
-export function getStaticProps() {
+export async function getServerSideProps() {
+  const onLoad = await fetch(`${URLS.BASE_URL}/api/login`, { method: "GET" });
+
   return {
     props: {
       baseURL: URLS.BASE_URL,
