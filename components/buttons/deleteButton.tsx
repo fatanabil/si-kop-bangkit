@@ -3,7 +3,7 @@ import { FaTrash } from "react-icons/fa";
 
 interface DeleteButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: string | ReactNode;
+  children?: string | ReactNode;
 }
 
 export default function DeleteButton(props: DeleteButtonProps) {
