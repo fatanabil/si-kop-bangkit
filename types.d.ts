@@ -46,6 +46,7 @@ export interface MutationDataType {
 export interface AnggotaDataType {
   no_rek: string;
   nama_anggota: string;
+  kode_ins?: string;
 }
 
 export interface MutationDataErrType {
@@ -66,4 +67,11 @@ export interface InvoiceListedDataType {
   nama_anggota: string;
   detail_ins: AgencyType;
   jumlah: number;
+}
+
+export interface InvoiceNotListedDataType {
+  no_rek: string;
+  nama_anggota: string;
+  jumlah: number;
+  kode_ins: string;
 }
