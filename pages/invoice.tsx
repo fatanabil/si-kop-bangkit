@@ -1,30 +1,39 @@
-import Layout from "../components/layout";
-import { useState } from "react";
-import UseTextInputModal from "../components/modals/useTextInputModal";
-import URLS from "../utils/url";
-import { InvoiceListedDataType } from "../types";
+import { useRouter } from "next/router";
+import { useContext, useEffect, useState } from "react";
 import DeleteButton from "../components/buttons/deleteButton";
+import RefreshButton from "../components/buttons/refreshButton";
+import Layout from "../components/layout";
+import AddNotListedMemberModal from "../components/modals/addNotListedMemberModal";
 import NotListedDataModal from "../components/modals/notListedDataModal";
+import UseTextInputModal from "../components/modals/useTextInputModal";
+import AuthContext from "../contexts/authContext";
+import { InvoiceListedDataType } from "../types";
 import formatNumber from "../utils/formatNumber";
+import URLS from "../utils/url";
 
 interface InvoiceProps {
   baseURL: string;
 }
 
 export default function Invoice({ baseURL }: InvoiceProps) {
-  const [listedData, setListedData] = useState<InvoiceListedDataType[]>(
-    () => JSON.parse(localStorage.getItem("LISTED_DATA") as string) || []
-  );
-  const [notListedData, setNotListedData] = useState(
-    () => JSON.parse(localStorage.getItem("NOT_LISTED_DATA") as string) || []
-  );
+  const router = useRouter();
+  const { authData, changeAuthData } = useContext(AuthContext);
+  const [listedData, setListedData] = useState<InvoiceListedDataType[]>([]);
+  const [notListedData, setNotListedData] = useState([]);
   const [openInputText, setOpenInputText] = useState(false);
   const [notListedModalOpen, setNotListedModalOpen] = useState(true);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [agencyData, setAgencyData] = useState([]);
   const total =
     listedData.length > 0
       ? listedData.map((dt) => dt.jumlah).reduce((total, curr) => total + curr)
       : 0;
+  const [refresh, setRefresh] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const doRefresh = () => {
+    setRefresh((prev) => prev + 1);
+  };
 
   const deleteAllData = () => {
     setListedData([]);
@@ -35,6 +44,67 @@ export default function Invoice({ baseURL }: InvoiceProps) {
     return;
   };
 
+  const getAgencyData = async () => {
+    const response = await fetch(`${baseURL}/api/agency`, {
+      headers: {
+        authorization: authData.token,
+      },
+    });
+    const { data, refreshToken } = await response.json();
+    if (response.ok) {
+      if (refreshToken) {
+        changeAuthData({ ...authData, token: refreshToken });
+      }
+      setAgencyData(data);
+    } else {
+      if (response.status === 401) {
+        changeAuthData({ username: "", token: "", isAuthenticated: false });
+        return router.replace("/login");
+      }
+    }
+  };
+
+  const checkInvoiceData = async () => {
+    const invoiceData =
+      JSON.parse(localStorage.getItem("SERIALIZED_DATA") as string) || [];
+    if (invoiceData.length !== 0) {
+      setLoading(true);
+      const post = await fetch(`${baseURL}/api/invoice/check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: authData.token,
+        },
+        body: JSON.stringify({ invoiceData }),
+      });
+      const { data } = await post.json();
+      if (post.ok) {
+        const { listedData, notListedData } = data;
+        setListedData(listedData);
+        setNotListedData(notListedData);
+        localStorage.setItem("LISTED_DATA", JSON.stringify(listedData));
+        localStorage.setItem("NOT_LISTED_DATA", JSON.stringify(notListedData));
+        setOpenInputText(false);
+        setNotListedModalOpen(true);
+      }
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getAgencyData();
+    setListedData(
+      JSON.parse(localStorage.getItem("LISTED_DATA") as string) || []
+    );
+    setNotListedData(
+      JSON.parse(localStorage.getItem("NOT_LISTED_DATA") as string) || []
+    );
+  }, []);
+
+  useEffect(() => {
+    checkInvoiceData();
+  }, [refresh]);
+
   return (
     <Layout title="SI-KOP-BANGKIT | Tagihan">
       <div className="flex flex-col gap-4 md:flex-row justify-between">
@@ -43,7 +113,7 @@ export default function Invoice({ baseURL }: InvoiceProps) {
         </h2>
         {listedData.length > 0 || notListedData.length > 0 ? (
           <div className="flex gap-4">
-            {/* <RefreshButton onRefresh={onRefreshHandle} loading={loading} /> */}
+            <RefreshButton doRefresh={doRefresh} loading={loading} />
             <button
               className="px-4 py-2 bg-teal-600 text-slate-200 rounded-md hover:bg-teal-500 transition-all duration-300"
               onClick={() => {}}
@@ -77,20 +147,6 @@ export default function Invoice({ baseURL }: InvoiceProps) {
             >
               Input text
             </button>
-            {/* <div className="lg:w-96 flex">
-              <input
-                className="form-control block w-full px-3 py-2 text-base font-normal text-slate-200 bg-slate-500 bg-clip-padding rounded-l-md transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                accept=".csv, .xlsx, .xls"
-                type="file"
-                onChange={(e) => {}}
-              />
-              <button
-                className="px-4 py-2 bg-slate-600 text-slate-200 rounded-r-md hover:bg-slate-500 transition-all duration-300"
-                onClick={() => {}}
-              >
-                Upload
-              </button>
-            </div> */}
           </div>
         )}
       </div>
@@ -155,6 +211,16 @@ export default function Invoice({ baseURL }: InvoiceProps) {
           setListedData={setListedData}
           setNotListedData={setNotListedData}
           setNotListedModalOpen={setNotListedModalOpen}
+        />
+      )}
+      {addMemberOpen && (
+        <AddNotListedMemberModal
+          agencyData={agencyData}
+          addMemberOpen={addMemberOpen}
+          setAddMemberOpen={setAddMemberOpen}
+          notListedData={notListedData}
+          baseURL={baseURL}
+          doRefresh={doRefresh}
         />
       )}
     </Layout>
