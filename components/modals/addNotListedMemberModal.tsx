@@ -47,11 +47,14 @@ export default function AddNotListedMemberModal({
   };
 
   const onUploadMember = async () => {
-    const memberData = newMember.map((data) => {
-      const kd_ins = agencyData.filter((ag) => ag.nama_ins === data.kode_ins)[0]
-        .kode_ins;
-      return { ...data, kode_ins: kd_ins };
-    });
+    const memberData = newMember
+      .filter((data) => data.kode_ins !== "")
+      .map((data) => {
+        const kd_ins = agencyData.filter(
+          (ag) => ag.nama_ins === data.kode_ins
+        )[0].kode_ins;
+        return { ...data, kode_ins: kd_ins };
+      });
 
     const post = await fetch(`${baseURL}/api/invoice/add-member`, {
       method: "POST",
