@@ -1,3 +1,4 @@
+import xlsx from "json-as-xlsx";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import DeleteButton from "../components/buttons/deleteButton";
@@ -7,7 +8,8 @@ import AddNotListedMemberModal from "../components/modals/addNotListedMemberModa
 import NotListedDataModal from "../components/modals/notListedDataModal";
 import UseTextInputModal from "../components/modals/useTextInputModal";
 import AuthContext from "../contexts/authContext";
-import { InvoiceListedDataType } from "../types";
+import { InvoiceListedDataType, XLSXContentType } from "../types";
+import months from "../utils/bulan";
 import formatNumber from "../utils/formatNumber";
 import URLS from "../utils/url";
 
@@ -30,6 +32,7 @@ export default function Invoice({ baseURL }: InvoiceProps) {
       : 0;
   const [refresh, setRefresh] = useState(1);
   const [loading, setLoading] = useState(false);
+  const bulan = months[new Date().getMonth()];
 
   const doRefresh = () => {
     setRefresh((prev) => prev + 1);
@@ -91,6 +94,29 @@ export default function Invoice({ baseURL }: InvoiceProps) {
     }
   };
 
+  const onDownloadXLSX = () => {
+    let dataExcel = [
+      {
+        sheet: `Berhasil ${bulan} ${new Date().getFullYear()}`.toUpperCase(),
+        columns: [
+          { label: "NO REK", value: "no_rek" },
+          { label: "NAMA ANGGOTA", value: "nama_anggota" },
+          { label: "JUMLAH", value: "jumlah" },
+          { label: "NAMA INSTANSI", value: "detail_ins.nama_ins" },
+        ],
+        content: listedData as XLSXContentType[],
+      },
+    ];
+
+    let settings = {
+      fileName: `REKAP TAGIHAN ${new Date().getFullYear()} - ${bulan.toUpperCase()}`,
+      extraLength: 3,
+      writeOptions: {},
+    };
+
+    xlsx(dataExcel, settings);
+  };
+
   useEffect(() => {
     getAgencyData();
     setListedData(
@@ -116,7 +142,7 @@ export default function Invoice({ baseURL }: InvoiceProps) {
             <RefreshButton doRefresh={doRefresh} loading={loading} />
             <button
               className="px-4 py-2 bg-teal-600 text-slate-200 rounded-md hover:bg-teal-500 transition-all duration-300"
-              onClick={() => {}}
+              onClick={onDownloadXLSX}
             >
               <div className="flex gap-2">
                 <svg
