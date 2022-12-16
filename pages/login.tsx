@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState, useContext, FormEvent } from "react";
+import { useState, useContext, FormEvent, useEffect } from "react";
 import Loader from "../components/loader";
 import AuthContext from "../contexts/authContext";
 import { ResponseJSONType } from "../types";
@@ -10,7 +10,7 @@ interface LoginProps {
   baseURL: string;
 }
 
-export default function Login(props: LoginProps) {
+export default function Login({ baseURL }: LoginProps) {
   const router = useRouter();
   const { changeAuthData } = useContext(AuthContext);
   const [failed, setFailed] = useState<ResponseJSONType>({
@@ -21,11 +21,13 @@ export default function Login(props: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [onInit, setOnInit] = useState(false);
 
   const onLoginHandler = async (ev: FormEvent) => {
+    setLoading(true);
     ev.preventDefault();
 
-    const login = await fetch(`${props.baseURL}/api/login`, {
+    const login = await fetch(`${baseURL}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -33,6 +35,7 @@ export default function Login(props: LoginProps) {
     const result = await login.json();
     if (login.ok) {
       if (result.data.token) {
+        setLoading(false);
         const { username, token } = result.data;
         changeAuthData({ username, token, isAuthenticated: true });
         router.replace("/");
@@ -46,6 +49,25 @@ export default function Login(props: LoginProps) {
       }
     }
   };
+
+  const onLoad = async () => {
+    setOnInit(true);
+    const load = await fetch(`${baseURL}/api/login`, { method: "GET" });
+    if (load.ok) {
+      setOnInit(false);
+    }
+  };
+
+  useEffect(() => {
+    onLoad();
+  }, []);
+
+  if (onInit)
+    return (
+      <div className="min-h-screen w-screen flex justify-center items-center bg-slate-800 px-6">
+        <h4 className="text-4xl text-slate-200 animate-pulse">Loading...</h4>
+      </div>
+    );
 
   return (
     <>
@@ -126,8 +148,6 @@ export default function Login(props: LoginProps) {
 }
 
 export async function getServerSideProps() {
-  const onLoad = await fetch(`${URLS.BASE_URL}/api/login`, { method: "GET" });
-
   return {
     props: {
       baseURL: URLS.BASE_URL,
