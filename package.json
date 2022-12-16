@@ -16,6 +16,7 @@
     "dotenv": "^16.0.3",
     "eslint": "8.27.0",
     "eslint-config-next": "13.0.3",
+    "json-as-xlsx": "^2.5.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.7.2",
     "next": "13.0.3",
