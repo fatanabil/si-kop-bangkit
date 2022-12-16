@@ -75,3 +75,7 @@ export interface InvoiceNotListedDataType {
   jumlah: number;
   kode_ins: string;
 }
+
+export interface XLSXContentType {
+  [key: string]: string | number | boolean | Date | IContent;
+}
