@@ -43,7 +43,7 @@ export default async function handler(
           },
         },
       },
-    ]);
+    ]).sort({ "detail_ins.nama_ins": 1 });
     const listedREK = result.map((dt) => dt.no_rek);
     const notListedREK = listNOREK.filter((dt) => !listedREK.includes(dt));
 
@@ -66,13 +66,11 @@ export default async function handler(
       }
     });
 
-    return res
-      .status(200)
-      .json({
-        data: { listedData, notListedData },
-        msg: "MASUKKK",
-        err: false,
-        invoiceData,
-      });
+    return res.status(200).json({
+      data: { listedData, notListedData },
+      msg: "MASUKKK",
+      err: false,
+      invoiceData,
+    });
   }
 }
