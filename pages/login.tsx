@@ -48,6 +48,7 @@ export default function Login({ baseURL }: LoginProps) {
         }, 5000);
       }
     }
+    setLoading(false);
   };
 
   const onLoad = async () => {
