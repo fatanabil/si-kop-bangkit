@@ -34,7 +34,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (method === 'GET') {
         let memberData: MemberType[] = [];
 
-        if (nama) {
+        if (nama && instansi) {
+            const { kode_ins } = await Instansi.findOne({ nama_ins: instansi });
+            memberData = await Anggota.aggregate([
+                {
+                    $match: {
+                        nama_anggota: {
+                            $regex: '.*' + nama + '.*',
+                            $options: 'i',
+                        },
+                        kode_ins,
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'instansi',
+                        localField: 'kode_ins',
+                        foreignField: 'kode_ins',
+                        as: 'detail_ins',
+                    },
+                },
+                {
+                    $unwind: '$detail_ins',
+                },
+            ]).sort({ nama_anggota: 1 });
+        } else if (nama) {
             memberData = await Anggota.aggregate([
                 {
                     $match: {
