@@ -1,17 +1,17 @@
 import { useRouter } from 'next/router';
-import { useContext, useEffect, useState } from 'react';
+import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
+import ActionOptionPopup from '../components/ActionOptionPopup';
+import OnDeleteMemberAlert from '../components/alerts/onDeleteMemberAlert';
 import AddButton from '../components/buttons/addButton';
 import Layout from '../components/layout';
+import Loader from '../components/loader';
 import AddMemberModal from '../components/modals/addMemberModal';
+import EditMemberModal from '../components/modals/editMemberModal';
 import AuthContext from '../contexts/authContext';
+import ElipsisVerticalIcon from '../icons/ElipsisVerticalIcon';
 import { AgencyType, MemberType } from '../types';
 import URLS from '../utils/url';
-import ElipsisVerticalIcon from '../icons/ElipsisVerticalIcon';
-import PencilIcon from '../icons/PencilIcon';
-import TrashIcon from '../icons/TrashIcon';
-import ActionOptionPopup from '../components/ActionOptionPopup';
-import EditMemberModal from '../components/modals/editMemberModal';
 
 interface MemberProps {
     baseURL: string;
@@ -30,8 +30,30 @@ export default function Member({ baseURL }: MemberProps) {
     const [openOption, setOpenOption] = useState({ status: false, id: '' });
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
     const [editedMember, setEditedMember] = useState<MemberType | undefined>();
+    const [deleteMemberAlertData, setDeleteMemberAlertData] = useState({ isOpen: false, data: {}, title: '', message: '' });
+    const [isLoading, setIsloading] = useState(false);
+
+    const setSearchParam = (param: string, value: string) => {
+        const newQuery = { ...router.query, [param]: value };
+
+        router.push({
+            pathname: router.pathname,
+            query: newQuery,
+        });
+    };
+
+    const removeSearchParam = (param: string) => {
+        const searchParam = new URLSearchParams(router.query);
+        searchParam.delete(param);
+
+        router.push({
+            pathname: router.pathname,
+            query: Object.fromEntries(searchParam),
+        });
+    };
 
     const onSearchMemberDataHandler = async (val1: string, val2: string) => {
+        setIsloading(true);
         const response = await fetch(`${baseURL}/api/member?nama=${val1}&instansi=${val2}&limit=20`, {
             method: 'GET',
             headers: {
@@ -46,6 +68,7 @@ export default function Member({ baseURL }: MemberProps) {
                 changeAuthData({ ...authData, token: refreshToken });
             }
             setMemberData(data);
+            setIsloading(false);
         } else {
             if (response.status === 401) {
                 changeAuthData({ username: '', token: '', isAuthenticated: false });
@@ -66,23 +89,27 @@ export default function Member({ baseURL }: MemberProps) {
     };
 
     const handleOnClickDeleteMember = async (member: MemberType) => {
-        const option = window.confirm(`Apakah yakin ingin menghapus anggota dengan nama: ${member.nama_anggota}`);
-        if (option) {
-            const response = await fetch(`${baseURL}/api/member`, {
-                method: 'DELETE',
-                headers: {
-                    authorization: authData.token,
-                },
-                body: JSON.stringify(member),
-            });
-            const { msg } = await response.json();
-            if (response.status === 200) {
-                window.alert(msg);
-            } else {
-                window.alert(msg);
-            }
+        setDeleteMemberAlertData((prev) => {
+            return {
+                ...prev,
+                isOpen: true,
+                data: member,
+                title: 'Konfirmasi Hapus Anggota',
+                message: `Apakah Anda ingin manghapus anggota: ${member.nama_anggota}?`,
+            };
+        });
+    };
+
+    const handleOnChangeSearchNamaAnggota = (ev: ChangeEvent<HTMLInputElement>) => {
+        if (ev.target.value === '') {
+            removeSearchParam('nama');
         }
-        return;
+        setNmAnggota(ev.target.value.toUpperCase());
+        setSearchParam('nama', ev.target.value.toUpperCase());
+    };
+
+    const handleOnChangeSearchInstansi = (ev: ChangeEvent<HTMLInputElement>) => {
+        setNmInstansi(ev.target.value.toUpperCase());
     };
 
     useEffect(() => {
@@ -116,7 +143,7 @@ export default function Member({ baseURL }: MemberProps) {
                         type='text'
                         placeholder='Cari Nama Anggota'
                         className='w-full px-4 py-2 rounded-md bg-slate-600 shadow-md shadow-slate-800 text-slate-200 outline-none focus:ring-2 focus:ring-slate-500 transition-all sm:mt-0 sm:w-56'
-                        onChange={(ev) => setNmAnggota(ev.target.value.toUpperCase())}
+                        onChange={(ev) => handleOnChangeSearchNamaAnggota(ev)}
                         value={nmAnggota}
                     />
                     <input
@@ -124,7 +151,7 @@ export default function Member({ baseURL }: MemberProps) {
                         list='agency-name'
                         placeholder='Cari berdasarkan instansi'
                         className='ml-0 w-full px-4 py-2 rounded-md bg-slate-600 shadow-md shadow-slate-800 text-slate-200 outline-none focus:ring-2 focus:ring-slate-500 transition-all sm:mt-0 sm:w-64'
-                        onChange={(ev) => setNmInstansi(ev.target.value)}
+                        onChange={(ev) => handleOnChangeSearchInstansi(ev)}
                         value={nmInstansi}
                     />
                 </div>
@@ -150,7 +177,15 @@ export default function Member({ baseURL }: MemberProps) {
                         </tr>
                     </thead>
                     <tbody className='divide-y divide-slate-800'>
-                        {memberData.length === 0 ? (
+                        {isLoading ? (
+                            <tr>
+                                <td colSpan={5}>
+                                    <div className='flex justify-center w-full py-6'>
+                                        <Loader />
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : memberData.length === 0 ? (
                             <tr>
                                 <td colSpan={4} className='text-center font-semibold'>
                                     Data Tidak Ditemukan
@@ -173,6 +208,7 @@ export default function Member({ baseURL }: MemberProps) {
                                             </button>
                                             <ActionOptionPopup
                                                 openOption={openOption}
+                                                setOpenOption={setOpenOption}
                                                 member={member}
                                                 handleOnDelete={handleOnClickDeleteMember}
                                                 handleOnEdit={handleOnClickEditMember}
@@ -185,8 +221,9 @@ export default function Member({ baseURL }: MemberProps) {
                     </tbody>
                 </table>
             </div>
-            {addOpen && <AddMemberModal baseURL={baseURL} addOpen={addOpen} setAddOpen={setAddOpen} />}
+            <AddMemberModal baseURL={baseURL} addOpen={addOpen} setAddOpen={setAddOpen} />
             <EditMemberModal isOpen={isEditModalOpen} setIsOpen={setIsEditModalOpen} baseURL={baseURL} member={editedMember} />
+            <OnDeleteMemberAlert baseURL={baseURL} alert={{ alertData: deleteMemberAlertData, setAlertData: setDeleteMemberAlertData }} />
         </Layout>
     );
 }
