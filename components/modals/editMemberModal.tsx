@@ -2,6 +2,8 @@ import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import { MemberType } from '../../types';
 import CloseButton from '../buttons/closeButton';
 import AuthContext from '../../contexts/authContext';
+import useFlashHook from '../../hooks/useFlashHook';
+import FlashMessage from '../flash/FlashMessage';
 
 interface EditMemberModalType {
     baseURL: string;
@@ -13,6 +15,7 @@ interface EditMemberModalType {
 const EditMemberModal = ({ isOpen, setIsOpen, baseURL, member }: EditMemberModalType) => {
     const { authData } = useContext(AuthContext);
     const [memberData, setMemberData] = useState<MemberType | undefined>();
+    const flash = useFlashHook({ message: '' });
 
     useEffect(() => {
         setMemberData(member);
@@ -33,7 +36,7 @@ const EditMemberModal = ({ isOpen, setIsOpen, baseURL, member }: EditMemberModal
     const handleOnChangeInstansi = (ev: ChangeEvent<HTMLInputElement>) => {
         let selectedEl: Element | null;
         if (ev.target.value) {
-            selectedEl = document.querySelector(`option[value=${ev?.target?.value}]`);
+            selectedEl = document.querySelector(`option[value="${ev?.target?.value}"]`);
         }
 
         setMemberData((prev): MemberType => {
@@ -53,10 +56,14 @@ const EditMemberModal = ({ isOpen, setIsOpen, baseURL, member }: EditMemberModal
         const { msg } = await response.json();
 
         if (response.status === 200) {
-            window.alert(msg);
             setIsOpen(false);
+            flash.setStatus('success');
+            flash.setMsg(msg);
+            flash.setIsOpen(true);
         } else {
-            window.alert(msg);
+            flash.setStatus('failed');
+            flash.setMsg(msg);
+            flash.setIsOpen(true);
         }
     };
 
@@ -121,6 +128,7 @@ const EditMemberModal = ({ isOpen, setIsOpen, baseURL, member }: EditMemberModal
                     Update
                 </button>
             </div>
+            <FlashMessage {...flash} />
         </>
     );
 };
