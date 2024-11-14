@@ -12,6 +12,7 @@ import AuthContext from '../contexts/authContext';
 import ElipsisVerticalIcon from '../icons/ElipsisVerticalIcon';
 import { AgencyType, MemberType } from '../types';
 import URLS from '../utils/url';
+import { ParsedUrlQuery } from 'querystring';
 
 interface MemberProps {
     baseURL: string;
@@ -42,8 +43,21 @@ export default function Member({ baseURL }: MemberProps) {
         });
     };
 
+    const convertQueryToRecord = (query: ParsedUrlQuery): Record<string, string> => {
+        const result: Record<string, string> = {};
+        Object.keys(query).forEach((key) => {
+            const value = query[key];
+            if (typeof value === 'string') {
+                result[key] = value;
+            } else if (Array.isArray(value)) {
+                result[key] = value[0] || '';
+            }
+        });
+        return result;
+    };
+
     const removeSearchParam = (param: string) => {
-        const searchParam = new URLSearchParams(router.query);
+        const searchParam = new URLSearchParams(convertQueryToRecord(router.query));
         searchParam.delete(param);
 
         router.push({
