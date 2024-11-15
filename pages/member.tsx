@@ -65,11 +65,6 @@ export default function Member() {
         });
     };
 
-    const onSearchMemberDataHandler = async (nama_anggota: string, instansi: string) => {
-        setSearchParam('nama', nama_anggota);
-        setSearchParam('instansi', instansi);
-    };
-
     const handleOnclickOption = (id: string) => {
         setOpenOption((prev) => {
             return { status: !prev.status, id };
@@ -79,6 +74,7 @@ export default function Member() {
     const handleOnClickEditMember = (member: MemberType) => {
         setIsEditModalOpen(!isEditModalOpen);
         setEditedMember(member);
+        setOpenOption({ status: false, id: '' });
     };
 
     const handleOnClickDeleteMember = async (member: MemberType) => {
@@ -91,19 +87,20 @@ export default function Member() {
                 message: `Apakah Anda ingin manghapus anggota: ${member.nama_anggota}?`,
             };
         });
+        setOpenOption({ status: false, id: '' });
     };
 
     const handleOnChangeSearchNamaAnggota = (ev: ChangeEvent<HTMLInputElement>) => {
+        const value = ev.target.value.toUpperCase();
         setNmAnggota(ev.target.value.toUpperCase());
+        setSearchParam('nama', value);
     };
 
     const handleOnChangeSearchInstansi = (ev: ChangeEvent<HTMLInputElement>) => {
+        const value = ev.target.value.toUpperCase();
         setNmInstansi(ev.target.value.toUpperCase());
+        setSearchParam('instansi', value);
     };
-
-    useEffect(() => {
-        onSearchMemberDataHandler(memberDebounce, agencyDebounce);
-    }, [memberDebounce, agencyDebounce]);
 
     useEffect(() => {
         const getAgencyData = async () => {
