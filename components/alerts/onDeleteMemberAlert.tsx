@@ -1,13 +1,16 @@
+import { mutate } from 'swr';
 import useFlashHook from '../../hooks/useFlashHook';
-import { DeleteMemberService } from '../../services/member-service';
+import { DeleteMemberService, SearchMemberByNameAndAgencyService } from '../../services/member-service';
 import { MemberType } from '../../types';
 import FlashMessage from '../flash/FlashMessage';
+import { useRouter } from 'next/router';
 
 interface OnDeleteMemberAlertType {
     alert: { alertData: { isOpen: boolean; title: string; message: string; data: MemberType | object }; setAlertData: Function };
 }
 
 const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData } }: OnDeleteMemberAlertType) => {
+    const router = useRouter();
     const flash = useFlashHook({ message: '' });
 
     const closeAlert = () => {
@@ -17,6 +20,7 @@ const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData } }: OnDeleteMem
     };
 
     const confirmAlert = async () => {
+        const query = router.query;
         const { msg, err, response } = await DeleteMemberService(alertData.data as MemberType);
         setAlertData((prev: any) => {
             return { ...prev, isOpen: false };
@@ -24,6 +28,9 @@ const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData } }: OnDeleteMem
         flash.setIsOpen(true);
         flash.setStatus(!err ? 'success' : 'failed');
         flash.setMsg(msg);
+        mutate(`/api/member?nama=${query.nama}&instansi=${query.instansi}`, () => SearchMemberByNameAndAgencyService(query.nama as string, query.instansi as string), {
+            revalidate: true,
+        });
     };
 
     return (

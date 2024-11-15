@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { ParsedUrlQuery } from 'querystring';
-import { ChangeEvent, useContext, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
+import useSWR, { mutate } from 'swr';
 import { useDebounce } from 'use-debounce';
 import ActionOptionPopup from '../components/ActionOptionPopup';
 import OnDeleteMemberAlert from '../components/alerts/onDeleteMemberAlert';
@@ -9,7 +10,6 @@ import Layout from '../components/layout';
 import Loader from '../components/loader';
 import AddMemberModal from '../components/modals/addMemberModal';
 import EditMemberModal from '../components/modals/editMemberModal';
-import AuthContext from '../contexts/authContext';
 import ElipsisVerticalIcon from '../icons/ElipsisVerticalIcon';
 import { GetAgencyDataService } from '../services/agency-service';
 import { SearchMemberByNameAndAgencyService } from '../services/member-service';
@@ -17,19 +17,21 @@ import { AgencyType, MemberType } from '../types';
 
 export default function Member() {
     const router = useRouter();
-    const { authData, changeAuthData } = useContext(AuthContext);
-    const [memberData, setMemberData] = useState<MemberType[]>([]);
     const [agencyData, setAgencyData] = useState<AgencyType[]>([]);
     const [nmAnggota, setNmAnggota] = useState<string>('');
     const [nmInstansi, setNmInstansi] = useState<string>('');
-    const [aggDe] = useDebounce(nmAnggota, 500);
-    const [insDe] = useDebounce(nmInstansi, 500);
+    const [memberDebounce] = useDebounce(nmAnggota, 500);
+    const [agencyDebounce] = useDebounce(nmInstansi, 500);
     const [addOpen, setAddOpen] = useState<boolean>(false);
     const [openOption, setOpenOption] = useState({ status: false, id: '' });
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
     const [editedMember, setEditedMember] = useState<MemberType | undefined>();
     const [deleteMemberAlertData, setDeleteMemberAlertData] = useState({ isOpen: false, data: {}, title: '', message: '' });
-    const [isLoading, setIsloading] = useState(false);
+
+    const { data, error, isLoading } = useSWR(`/api/member?nama=${memberDebounce}&instansi=${agencyDebounce}`, () =>
+        SearchMemberByNameAndAgencyService(memberDebounce, agencyDebounce)
+    );
+    const memberData = data?.data;
 
     const setSearchParam = (param: string, value: string) => {
         const newQuery = { ...router.query, [param]: value };
@@ -64,21 +66,8 @@ export default function Member() {
     };
 
     const onSearchMemberDataHandler = async (nama_anggota: string, instansi: string) => {
-        setIsloading(true);
-        const { data, refreshToken, response } = await SearchMemberByNameAndAgencyService(nama_anggota, instansi);
-
-        if (response.ok) {
-            if (refreshToken) {
-                changeAuthData({ ...authData, token: refreshToken });
-            }
-            setMemberData(data);
-            setIsloading(false);
-        } else {
-            if (response.status === 401) {
-                changeAuthData({ username: '', token: '', isAuthenticated: false });
-                return router.replace('/login');
-            }
-        }
+        setSearchParam('nama', nama_anggota);
+        setSearchParam('instansi', instansi);
     };
 
     const handleOnclickOption = (id: string) => {
@@ -105,11 +94,7 @@ export default function Member() {
     };
 
     const handleOnChangeSearchNamaAnggota = (ev: ChangeEvent<HTMLInputElement>) => {
-        if (ev.target.value === '') {
-            removeSearchParam('nama');
-        }
         setNmAnggota(ev.target.value.toUpperCase());
-        setSearchParam('nama', ev.target.value.toUpperCase());
     };
 
     const handleOnChangeSearchInstansi = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +102,8 @@ export default function Member() {
     };
 
     useEffect(() => {
-        onSearchMemberDataHandler(aggDe, insDe);
-    }, [aggDe, insDe]);
+        onSearchMemberDataHandler(memberDebounce, agencyDebounce);
+    }, [memberDebounce, agencyDebounce]);
 
     useEffect(() => {
         const getAgencyData = async () => {
@@ -130,6 +115,12 @@ export default function Member() {
 
         getAgencyData();
     }, []);
+
+    useEffect(() => {
+        mutate(`/api/member?nama=${memberDebounce}&instansi=${agencyDebounce}`, () => SearchMemberByNameAndAgencyService(memberDebounce, agencyDebounce), {
+            revalidate: true,
+        });
+    }, [memberDebounce, agencyDebounce]);
 
     return (
         <Layout title='SI-KOP-BANGKIT | Anggota'>
@@ -183,14 +174,15 @@ export default function Member() {
                                     </div>
                                 </td>
                             </tr>
-                        ) : memberData.length === 0 ? (
+                        ) : (memberData && memberData.length === 0) || error ? (
                             <tr>
                                 <td colSpan={4} className='text-center font-semibold'>
                                     Data Tidak Ditemukan
                                 </td>
                             </tr>
                         ) : (
-                            memberData.map((member, index) => {
+                            memberData &&
+                            memberData.map((member: any, index: number) => {
                                 return (
                                     <tr key={member._id} className='hover:bg-slate-600 transition-all duration-100'>
                                         <td className='text-center py-2'>{++index}</td>

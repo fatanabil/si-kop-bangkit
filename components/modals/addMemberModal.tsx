@@ -1,9 +1,10 @@
-import CloseButton from '../buttons/closeButton';
-import { useState, FormEvent, useContext } from 'react';
-import AuthContext from '../../contexts/authContext';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { mutate } from 'swr';
 import useFlashHook from '../../hooks/useFlashHook';
+import { AddNewMemberService, SearchMemberByNameAndAgencyService } from '../../services/member-service';
+import CloseButton from '../buttons/closeButton';
 import FlashMessage from '../flash/FlashMessage';
-import { AddNewMemberService } from '../../services/member-service';
 
 interface AddMemberModalProps {
     addOpen: boolean;
@@ -11,13 +12,14 @@ interface AddMemberModalProps {
 }
 
 export default function AddMemberModal({ addOpen, setAddOpen }: AddMemberModalProps) {
-    const { authData } = useContext(AuthContext);
+    const router = useRouter();
     const [noRek, setNoRek] = useState<string>('0000000000');
     const [nmAnggota, setNmAnggota] = useState<string>('');
     const [nmInstansi, setNmInstansi] = useState<string>('');
     const flash = useFlashHook({ message: '' });
 
     const onSubmitNewMemberHandler = async () => {
+        const query = router.query;
         const { response, msg } = await AddNewMemberService({ no_rek: noRek, nama_anggota: nmAnggota, nama_instansi: nmInstansi });
         if (response.status === 200) {
             setAddOpen(false);
@@ -30,6 +32,12 @@ export default function AddMemberModal({ addOpen, setAddOpen }: AddMemberModalPr
             flash.setStatus('failed');
             flash.setIsOpen(true);
         }
+        setNoRek('0000000000');
+        setNmAnggota('');
+        setNmInstansi('');
+        mutate(`/api/member?nama=${query.nama}&instansi=${query.instansi}`, () => SearchMemberByNameAndAgencyService(query.nama as string, query.instansi as string), {
+            revalidate: true,
+        });
     };
 
     return (

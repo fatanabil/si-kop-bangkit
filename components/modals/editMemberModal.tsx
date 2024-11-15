@@ -1,9 +1,11 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import useFlashHook from '../../hooks/useFlashHook';
-import { UpdateMemberService } from '../../services/member-service';
+import { SearchMemberByNameAndAgencyService, UpdateMemberService } from '../../services/member-service';
 import { MemberType } from '../../types';
 import CloseButton from '../buttons/closeButton';
 import FlashMessage from '../flash/FlashMessage';
+import { mutate } from 'swr';
+import { useRouter } from 'next/router';
 
 interface EditMemberModalType {
     isOpen: boolean;
@@ -12,6 +14,7 @@ interface EditMemberModalType {
 }
 
 const EditMemberModal = ({ isOpen, setIsOpen, member }: EditMemberModalType) => {
+    const router = useRouter();
     const [memberData, setMemberData] = useState<MemberType | undefined>();
     const flash = useFlashHook({ message: '' });
 
@@ -43,6 +46,7 @@ const EditMemberModal = ({ isOpen, setIsOpen, member }: EditMemberModalType) => 
     };
 
     const handleOnClickSubmit = async () => {
+        const query = router.query;
         const finalData = { _id: memberData?._id, no_rek: memberData?.no_rek, kode_ins: memberData?.kode_ins, nama_anggota: memberData?.nama_anggota };
         const { response, msg } = await UpdateMemberService({ data: finalData });
         if (response.status === 200) {
@@ -55,6 +59,9 @@ const EditMemberModal = ({ isOpen, setIsOpen, member }: EditMemberModalType) => 
             flash.setMsg(msg);
             flash.setIsOpen(true);
         }
+        mutate(`/api/member?nama=${query.nama}&instansi=${query.instansi}`, () => SearchMemberByNameAndAgencyService(query.nama as string, query.instansi as string), {
+            revalidate: true,
+        });
     };
 
     return (
