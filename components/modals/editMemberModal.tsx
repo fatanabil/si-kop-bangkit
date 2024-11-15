@@ -1,19 +1,17 @@
-import { ChangeEvent, useContext, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
+import useFlashHook from '../../hooks/useFlashHook';
+import { UpdateMemberService } from '../../services/member-service';
 import { MemberType } from '../../types';
 import CloseButton from '../buttons/closeButton';
-import AuthContext from '../../contexts/authContext';
-import useFlashHook from '../../hooks/useFlashHook';
 import FlashMessage from '../flash/FlashMessage';
 
 interface EditMemberModalType {
-    baseURL: string;
     isOpen: boolean;
     setIsOpen: Function;
     member: MemberType | undefined;
 }
 
-const EditMemberModal = ({ isOpen, setIsOpen, baseURL, member }: EditMemberModalType) => {
-    const { authData } = useContext(AuthContext);
+const EditMemberModal = ({ isOpen, setIsOpen, member }: EditMemberModalType) => {
     const [memberData, setMemberData] = useState<MemberType | undefined>();
     const flash = useFlashHook({ message: '' });
 
@@ -46,15 +44,7 @@ const EditMemberModal = ({ isOpen, setIsOpen, baseURL, member }: EditMemberModal
 
     const handleOnClickSubmit = async () => {
         const finalData = { _id: memberData?._id, no_rek: memberData?.no_rek, kode_ins: memberData?.kode_ins, nama_anggota: memberData?.nama_anggota };
-
-        const response = await fetch(`${baseURL}/api/member`, {
-            method: 'PUT',
-            headers: { authorization: authData.token },
-            body: JSON.stringify(finalData),
-        });
-
-        const { msg } = await response.json();
-
+        const { response, msg } = await UpdateMemberService({ data: finalData });
         if (response.status === 200) {
             setIsOpen(false);
             flash.setStatus('success');

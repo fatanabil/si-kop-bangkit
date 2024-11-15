@@ -1,17 +1,13 @@
-import { useContext, useState } from 'react';
+import useFlashHook from '../../hooks/useFlashHook';
 import { DeleteMemberService } from '../../services/member-service';
-import AuthContext from '../../contexts/authContext';
 import { MemberType } from '../../types';
 import FlashMessage from '../flash/FlashMessage';
-import useFlashHook from '../../hooks/useFlashHook';
 
 interface OnDeleteMemberAlertType {
     alert: { alertData: { isOpen: boolean; title: string; message: string; data: MemberType | object }; setAlertData: Function };
-    baseURL: string;
 }
 
-const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData }, baseURL }: OnDeleteMemberAlertType) => {
-    const { authData } = useContext(AuthContext);
+const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData } }: OnDeleteMemberAlertType) => {
     const flash = useFlashHook({ message: '' });
 
     const closeAlert = () => {
@@ -21,7 +17,7 @@ const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData }, baseURL }: On
     };
 
     const confirmAlert = async () => {
-        const { msg, err, response } = await DeleteMemberService(baseURL, alertData.data as MemberType, authData.token);
+        const { msg, err, response } = await DeleteMemberService(alertData.data as MemberType);
         setAlertData((prev: any) => {
             return { ...prev, isOpen: false };
         });

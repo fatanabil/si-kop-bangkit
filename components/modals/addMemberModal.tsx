@@ -3,14 +3,14 @@ import { useState, FormEvent, useContext } from 'react';
 import AuthContext from '../../contexts/authContext';
 import useFlashHook from '../../hooks/useFlashHook';
 import FlashMessage from '../flash/FlashMessage';
+import { AddNewMemberService } from '../../services/member-service';
 
 interface AddMemberModalProps {
     addOpen: boolean;
     setAddOpen: Function;
-    baseURL: string;
 }
 
-export default function AddMemberModal({ addOpen, setAddOpen, baseURL }: AddMemberModalProps) {
+export default function AddMemberModal({ addOpen, setAddOpen }: AddMemberModalProps) {
     const { authData } = useContext(AuthContext);
     const [noRek, setNoRek] = useState<string>('0000000000');
     const [nmAnggota, setNmAnggota] = useState<string>('');
@@ -18,19 +18,7 @@ export default function AddMemberModal({ addOpen, setAddOpen, baseURL }: AddMemb
     const flash = useFlashHook({ message: '' });
 
     const onSubmitNewMemberHandler = async () => {
-        const response = await fetch(`${baseURL}/api/member`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: authData.token,
-            },
-            body: JSON.stringify({
-                no_rek: noRek,
-                nama_anggota: nmAnggota,
-                nama_instansi: nmInstansi,
-            }),
-        });
-        const { msg } = await response.json();
+        const { response, msg } = await AddNewMemberService({ no_rek: noRek, nama_anggota: nmAnggota, nama_instansi: nmInstansi });
         if (response.status === 200) {
             setAddOpen(false);
             flash.setMsg(msg);
