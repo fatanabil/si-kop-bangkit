@@ -33,8 +33,8 @@ export default function AddAgencyModal({ setOpenAddModal, lastId }: AddAgencyMod
 
     return (
         <div>
-            <div className='h-screen w-full fixed z-10 top-0 left-0 bg-black opacity-20 transition-all'></div>
-            <div className='w-5/6 bg-slate-800 rounded-lg p-8 fixed z-20 shadow-xl top-10 left-1/2 -translate-x-1/2 transition-all md:w-2/4 lg:w-2/5'>
+            <div className='h-screen w-full fixed z-50 top-0 left-0 bg-black opacity-20 transition-all'></div>
+            <div className='w-5/6 bg-slate-800 rounded-lg p-8 fixed z-50 shadow-xl top-10 left-1/2 -translate-x-1/2 transition-all md:w-2/4 lg:w-2/5'>
                 <div className='flex flex-col'>
                     <div className='flex justify-between items-center'>
                         <h3 className='text-2xl text-white font-semibold'>Tambah Instansi</h3>

@@ -40,7 +40,9 @@ export default function Agency() {
             <div className='flex flex-col justify-between md:flex-row'>
                 <h2 className='text-3xl font-semibold text-slate-200'>Daftar Instansi</h2>
                 <div className='mt-6 flex flex-col gap-3 sm:flex-row md:flex-row sm:mt-4 md:mt-4 lg:mt-0'>
-                    <AddButton onClick={() => setOpenAddModal(true)}>Tambah Instansi</AddButton>
+                    <AddButton disabled={agencyData.length === 0 ? true : false} onClick={() => setOpenAddModal(true)}>
+                        Tambah Instansi
+                    </AddButton>
                     <input
                         type='text'
                         placeholder='Cari Nama Instansi'
