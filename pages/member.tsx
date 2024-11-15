@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { ParsedUrlQuery } from 'querystring';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import ActionOptionPopup from '../components/ActionOptionPopup';
@@ -10,15 +11,11 @@ import AddMemberModal from '../components/modals/addMemberModal';
 import EditMemberModal from '../components/modals/editMemberModal';
 import AuthContext from '../contexts/authContext';
 import ElipsisVerticalIcon from '../icons/ElipsisVerticalIcon';
+import { GetAgencyDataService } from '../services/agency-service';
+import { SearchMemberByNameAndAgencyService } from '../services/member-service';
 import { AgencyType, MemberType } from '../types';
-import URLS from '../utils/url';
-import { ParsedUrlQuery } from 'querystring';
 
-interface MemberProps {
-    baseURL: string;
-}
-
-export default function Member({ baseURL }: MemberProps) {
+export default function Member() {
     const router = useRouter();
     const { authData, changeAuthData } = useContext(AuthContext);
     const [memberData, setMemberData] = useState<MemberType[]>([]);
@@ -66,16 +63,9 @@ export default function Member({ baseURL }: MemberProps) {
         });
     };
 
-    const onSearchMemberDataHandler = async (val1: string, val2: string) => {
+    const onSearchMemberDataHandler = async (nama_anggota: string, instansi: string) => {
         setIsloading(true);
-        const response = await fetch(`${baseURL}/api/member?nama=${val1}&instansi=${val2}&limit=20`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: authData.token,
-            },
-        });
-        const { data, refreshToken } = await response.json();
+        const { data, refreshToken, response } = await SearchMemberByNameAndAgencyService(nama_anggota, instansi);
 
         if (response.ok) {
             if (refreshToken) {
@@ -132,13 +122,7 @@ export default function Member({ baseURL }: MemberProps) {
 
     useEffect(() => {
         const getAgencyData = async () => {
-            const response = await fetch(`${baseURL}/api/agency`, {
-                method: 'GET',
-                headers: {
-                    authorization: authData.token,
-                },
-            });
-            const { data } = await response.json();
+            const { data, response } = await GetAgencyDataService();
             if (response.ok) {
                 setAgencyData(data);
             }
@@ -235,17 +219,9 @@ export default function Member({ baseURL }: MemberProps) {
                     </tbody>
                 </table>
             </div>
-            <AddMemberModal baseURL={baseURL} addOpen={addOpen} setAddOpen={setAddOpen} />
-            <EditMemberModal isOpen={isEditModalOpen} setIsOpen={setIsEditModalOpen} baseURL={baseURL} member={editedMember} />
-            <OnDeleteMemberAlert baseURL={baseURL} alert={{ alertData: deleteMemberAlertData, setAlertData: setDeleteMemberAlertData }} />
+            <AddMemberModal addOpen={addOpen} setAddOpen={setAddOpen} />
+            <EditMemberModal isOpen={isEditModalOpen} setIsOpen={setIsEditModalOpen} member={editedMember} />
+            <OnDeleteMemberAlert alert={{ alertData: deleteMemberAlertData, setAlertData: setDeleteMemberAlertData }} />
         </Layout>
     );
-}
-
-export async function getServerSideProps() {
-    return {
-        props: {
-            baseURL: URLS.BASE_URL,
-        },
-    };
 }
