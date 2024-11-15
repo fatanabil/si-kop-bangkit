@@ -19,7 +19,11 @@ export default function AddMemberModal({ addOpen, setAddOpen }: AddMemberModalPr
     const flash = useFlashHook({ message: '' });
 
     const onSubmitNewMemberHandler = async () => {
-        const query = router.query;
+        const { nama = '', instansi = '' } = router.query;
+        mutate(`/api/member?nama=${nama}&instansi=${instansi}`, (prev: any) => {
+            return { ...prev, data: [...prev?.data, { _id: Date.now(), no_rek: noRek, nama_anggota: nmAnggota, detail_ins: { nama_ins: nmInstansi } }] };
+        });
+
         const { response, msg } = await AddNewMemberService({ no_rek: noRek, nama_anggota: nmAnggota, nama_instansi: nmInstansi });
         if (response.status === 200) {
             setAddOpen(false);
@@ -35,7 +39,7 @@ export default function AddMemberModal({ addOpen, setAddOpen }: AddMemberModalPr
         setNoRek('0000000000');
         setNmAnggota('');
         setNmInstansi('');
-        mutate(`/api/member?nama=${query.nama}&instansi=${query.instansi}`, () => SearchMemberByNameAndAgencyService(query.nama as string, query.instansi as string), {
+        mutate(`/api/member?nama=${nama}&instansi=${instansi}`, () => SearchMemberByNameAndAgencyService(nama as string, instansi as string), {
             revalidate: true,
         });
     };

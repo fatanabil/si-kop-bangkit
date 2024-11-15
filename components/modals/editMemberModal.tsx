@@ -41,12 +41,29 @@ const EditMemberModal = ({ isOpen, setIsOpen, member }: EditMemberModalType) => 
         }
 
         setMemberData((prev): MemberType => {
-            return { ...prev, detail_ins: { ...prev?.detail_ins, nama_ins: ev.target.value }, kode_ins: selectedEl?.getAttribute('data-code') } as MemberType;
+            return {
+                ...prev,
+                detail_ins: { ...prev?.detail_ins, nama_ins: ev.target.value, kode_ins: selectedEl?.getAttribute('data-code') },
+                kode_ins: selectedEl?.getAttribute('data-code'),
+            } as MemberType;
         });
     };
 
     const handleOnClickSubmit = async () => {
-        const query = router.query;
+        const { nama = '', instansi = '' } = router.query;
+        mutate(`/api/member?nama=${nama}&instansi=${instansi}`, (prev: any) => {
+            return {
+                ...prev,
+                data: prev?.data.map((dt: MemberType) => {
+                    if (dt._id === memberData?._id) {
+                        return { ...memberData };
+                    }
+
+                    return { ...dt };
+                }),
+            };
+        });
+
         const finalData = { _id: memberData?._id, no_rek: memberData?.no_rek, kode_ins: memberData?.kode_ins, nama_anggota: memberData?.nama_anggota };
         const { response, msg } = await UpdateMemberService({ data: finalData });
         if (response.status === 200) {
@@ -59,7 +76,7 @@ const EditMemberModal = ({ isOpen, setIsOpen, member }: EditMemberModalType) => 
             flash.setMsg(msg);
             flash.setIsOpen(true);
         }
-        mutate(`/api/member?nama=${query.nama}&instansi=${query.instansi}`, () => SearchMemberByNameAndAgencyService(query.nama as string, query.instansi as string), {
+        mutate(`/api/member?nama=${nama}&instansi=${instansi}`, () => SearchMemberByNameAndAgencyService(nama as string, instansi as string), {
             revalidate: true,
         });
     };

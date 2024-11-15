@@ -20,7 +20,11 @@ const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData } }: OnDeleteMem
     };
 
     const confirmAlert = async () => {
-        const query = router.query;
+        const { nama = '', instansi = '' } = router.query;
+        mutate(`/api/member?nama=${nama}&instansi=${instansi}`, (prev: any) => {
+            return { ...prev, data: prev?.data.filter((dt: MemberType) => dt.no_rek !== (alertData.data as MemberType).no_rek) };
+        });
+
         const { msg, err, response } = await DeleteMemberService(alertData.data as MemberType);
         setAlertData((prev: any) => {
             return { ...prev, isOpen: false };
@@ -28,7 +32,7 @@ const OnDeleteMemberAlert = ({ alert: { alertData, setAlertData } }: OnDeleteMem
         flash.setIsOpen(true);
         flash.setStatus(!err ? 'success' : 'failed');
         flash.setMsg(msg);
-        mutate(`/api/member?nama=${query.nama}&instansi=${query.instansi}`, () => SearchMemberByNameAndAgencyService(query.nama as string, query.instansi as string), {
+        mutate(`/api/member?nama=${nama}&instansi=${instansi}`, () => SearchMemberByNameAndAgencyService(nama as string, instansi as string), {
             revalidate: true,
         });
     };
