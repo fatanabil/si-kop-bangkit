@@ -1,3 +1,4 @@
+import Router from 'next/router';
 import { MemberType } from '../types';
 
 interface AddNewMemberProps {
@@ -18,7 +19,7 @@ interface UpdateMemberProps {
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const SearchMemberByNameAndAgencyService = async (nama_anggota: string, instansi: string) => {
-    const { token } = JSON.parse(localStorage.getItem('AUTH_DATA') as string);
+    const { username, token, isAuthenticated } = JSON.parse(localStorage.getItem('AUTH_DATA') as string);
 
     const response = await fetch(`${BASE_URL}/api/member?nama=${nama_anggota}&instansi=${instansi}&limit=20`, {
         method: 'GET',
@@ -28,7 +29,17 @@ export const SearchMemberByNameAndAgencyService = async (nama_anggota: string, i
         },
     });
     const { data, refreshToken } = await response.json();
-    return { data, refreshToken, response };
+    if (response.ok) {
+        if (refreshToken) {
+            localStorage.setItem('AUTH_DATA', JSON.stringify({ username, token: refreshToken, isAuthenticated }));
+        }
+    } else {
+        if (response.status === 401) {
+            localStorage.setItem('AUTH_DATA', JSON.stringify({ username: '', token: '', isAuthenticated: false }));
+            Router.push('/login');
+        }
+    }
+    return { data, response };
 };
 
 export const AddNewMemberService = async ({ no_rek, nama_anggota, nama_instansi }: AddNewMemberProps) => {

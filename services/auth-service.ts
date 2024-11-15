@@ -1,3 +1,5 @@
+import Router from 'next/router';
+
 interface LoginServiceProps {
     username: string;
     password: string;
@@ -13,6 +15,9 @@ export const OnInitService = async () => {
 export const CheckTokenIsVerified = async () => {
     const { token } = JSON.parse(localStorage.getItem('AUTH_DATA') as string);
     const response = await fetch(`${BASE_URL}/api/check-token`, { method: 'GET', headers: { authorization: token } });
+    if (response.status === 401) {
+        Router.push('/login');
+    }
     return { response };
 };
 
