@@ -14,6 +14,7 @@ export default function Navbar() {
 
         if (option) {
             changeAuthData({ username: '', token: '', isAuthenticated: false });
+            localStorage.removeItem('AUTH_DATA');
             return router.replace('/login');
         }
 
