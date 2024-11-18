@@ -1,5 +1,4 @@
-import { useContext, useState } from 'react';
-import AuthContext from '../../contexts/authContext';
+import { useState } from 'react';
 import { CheckInvoiceService } from '../../services/invoice-service';
 import CloseButton from '../buttons/closeButton';
 import Loader from '../loader';
@@ -12,7 +11,6 @@ interface UseTextInputModalProps {
 }
 
 export default function UseTextInputModal({ setOpenInputText, setListedData, setNotListedData, setNotListedModalOpen }: UseTextInputModalProps) {
-    const { authData } = useContext(AuthContext);
     const [loading, setLoading] = useState(false);
     const [dataText, setDataText] = useState('');
 
@@ -23,7 +21,7 @@ export default function UseTextInputModal({ setOpenInputText, setListedData, set
             const invoiceData = parsedData.map((dt) => {
                 const row = dt.split('\t');
                 return {
-                    no_rek: row[0],
+                    no_rek: row[0].length <= 10 ? `${'0'.repeat(10 - row[0].length)}${row[0]}` : row[0],
                     nama_anggota: row[1],
                     jumlah: parseInt(row[2].replaceAll('.', '')),
                 };
@@ -55,12 +53,12 @@ export default function UseTextInputModal({ setOpenInputText, setListedData, set
                 </div>
                 <h3 className='text-slate-400 mb-4'>Format input : no_rek[tab]nama[tab]jumlah</h3>
                 {/* {isFailed && (
-          <Flash
-            status={false}
-            msg="Format Teks tidak sesuai"
-            duration={3000}
-          />
-        )} */}
+                <Flash
+                    status={false}
+                    msg="Format Teks tidak sesuai"
+                    duration={3000}
+                />
+                )} */}
                 <hr className='my-4 border-2 border-slate-600' />
                 <textarea name='' id='' cols={30} rows={15} className='bg-slate-600 mb-4 text-white p-4' onChange={(e) => setDataText(e.target.value)}></textarea>
                 <button className='px-4 py-2 bg-teal-600 rounded-md text-white hover:bg-teal-500 flex justify-center items-center' onClick={onUploadHandle}>
