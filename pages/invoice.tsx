@@ -163,7 +163,7 @@ export default function Invoice() {
                                 return (
                                     <tr key={index} className='hover:bg-slate-600 transition-all duration-100'>
                                         <td className='text-center py-2'>{++index}</td>
-                                        <td className='w-56'>{`${item.no_rek.substring(0, 7)}***`}</td>
+                                        <td className='w-56'>{item.no_rek}</td>
                                         <td className=''>{item.nama_anggota}</td>
                                         <td className=''>{item.detail_ins.nama_ins}</td>
                                         <td className=''>{formatNumber(item.jumlah)}</td>
