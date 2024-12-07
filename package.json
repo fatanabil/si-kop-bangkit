@@ -18,7 +18,7 @@
     "eslint-config-next": "13.0.3",
     "json-as-xlsx": "^2.5.3",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.11.3",
+    "mongoose": "^6.13.5",
     "next": "13.0.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
