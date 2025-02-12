@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Anggota {
+  id           Int      @id @default(autoincrement())
+  no_rek       String
+  nama_anggota String
+  id_instansi  Int
+  Instansi     Instansi @relation(fields: [id_instansi], references: [id])
+  Mutasi       Mutasi[]
+}
+
+model Instansi {
+  id                                       Int       @id @default(autoincrement())
+  kode_ins                                 String
+  nama_ins                                 String
+  Anggota                                  Anggota[]
+  Mutasi_Mutasi_id_instansi_dariToInstansi Mutasi[]  @relation("Mutasi_id_instansi_dariToInstansi")
+  Mutasi_Mutasi_id_instansi_keToInstansi   Mutasi[]  @relation("Mutasi_id_instansi_keToInstansi")
+}
+
+model Mutasi {
+  id                                         Int      @id @default(autoincrement())
+  id_instansi_dari                           Int
+  id_instansi_ke                             Int
+  bulan                                      DateTime @default(now())
+  id_anggota                                 Int
+  Anggota                                    Anggota  @relation(fields: [id_anggota], references: [id])
+  Instansi_Mutasi_id_instansi_dariToInstansi Instansi @relation("Mutasi_id_instansi_dariToInstansi", fields: [id_instansi_dari], references: [id])
+  Instansi_Mutasi_id_instansi_keToInstansi   Instansi @relation("Mutasi_id_instansi_keToInstansi", fields: [id_instansi_ke], references: [id])
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  username     String         @unique
+  password     String
+}
