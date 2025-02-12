@@ -40,45 +40,6 @@ export const api = createTRPCNext<AppRouter>({
            */
           transformer: superjson,
           url: `${getBaseUrl()}/api/trpc`,
-          fetch: async (input, init) => {
-            const access_token = document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("access_token="))
-              ?.split("=")[1];
-
-            const headers = new Headers(init?.headers);
-
-            if (access_token) {
-              headers.set("Authorization", `Bearer ${access_token}`);
-            }
-
-            const response = await fetch(input, {
-              ...init,
-              headers,
-            });
-
-            if (response.status === 401) {
-              try {
-                const { mutate: refreshToken } =
-                  api.auth.refreshToken.useMutation();
-                const refreshResult = refreshToken();
-                document.cookie = `access_token=${refreshResult.access_token}; path=/; max-age=900; HttpOnly`;
-
-                headers.set(
-                  "Authorization",
-                  `Bearer ${refreshResult.access_token}`,
-                );
-                return fetch(input, {
-                  ...init,
-                  headers,
-                });
-              } catch (refreshErr) {
-                window.location.href = "/login";
-                throw refreshErr;
-              }
-            }
-            return response;
-          },
         }),
       ],
     };
