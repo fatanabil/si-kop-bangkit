@@ -1,3 +1,4 @@
+import { type TRPCRequestInfo } from "@trpc/server/unstable-core-do-not-import";
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { createCaller } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
@@ -10,10 +11,20 @@ export default async function handler(
     return res.status(405).json({ error: "Nethod not allowed" });
   }
 
+  const controller = new AbortController();
+
+  const trpcRequestInfo: TRPCRequestInfo = {
+    accept: "application/jsonl",
+    type: "query",
+    calls: [],
+    isBatchCall: false,
+    signal: controller.signal,
+    connectionParams: {},
+  };
   const ctx = await createTRPCContext({
     req,
     res,
-    info: {},
+    info: trpcRequestInfo,
   });
 
   const caller = createCaller(ctx);
