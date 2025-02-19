@@ -8,7 +8,7 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   if (req.method !== "GET") {
-    return res.status(405).json({ error: "Nethod not allowed" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   const controller = new AbortController();
