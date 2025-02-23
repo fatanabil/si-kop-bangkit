@@ -111,7 +111,7 @@ const MonthCalendar = ({ isOpen, close }: MonthCalendarProps) => {
       )}
       <div
         className={cn(
-          "absolute right-0 top-[calc(100%_+_12px)] z-10 flex w-full origin-top flex-col gap-3 rounded-md bg-slate-700 p-4 shadow-md shadow-slate-800 transition-all duration-150",
+          "absolute right-0 top-[calc(100%_+_12px)] z-10 flex w-full min-w-fit origin-top flex-col gap-3 rounded-md bg-slate-700 p-4 shadow-md shadow-slate-800 transition-all duration-150",
           isOpen
             ? "pointer-events-auto translate-y-0 scale-y-100 opacity-100"
             : "pointer-events-none -translate-y-4 scale-y-90 opacity-0",
