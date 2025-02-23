@@ -20,14 +20,15 @@ const LoginPage = () => {
     mutate: loginUser,
     isPending: isPendingLoginUser,
     error: loginError,
-    isSuccess,
-  } = api.auth.login.useMutation();
+  } = api.auth.login.useMutation({
+    onSuccess: async () => {
+      await router.push("/");
+    },
+  });
 
   const handleLoginUser = (values: LoginFormSchema) => {
     loginUser(values);
   };
-
-  if (isSuccess) void router.push("/");
 
   return (
     <>

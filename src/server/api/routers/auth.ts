@@ -51,7 +51,7 @@ export const authRouter = createTRPCRouter({
     return { success: true };
   }),
 
-  check: protectedProcedure.query(({ ctx }) => {
+  check: protectedProcedure.mutation(({ ctx }) => {
     return ctx.user;
   }),
 });

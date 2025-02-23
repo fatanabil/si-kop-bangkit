@@ -2,10 +2,10 @@ import { type Instansi } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { AddInstansiFormScheme } from "~/features/instansi/schema/AddInstansiFormSchema";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const instansiRouter = createTRPCRouter({
-  getAgencyList: protectedProcedure.query(async ({ ctx }) => {
+  getAgencyList: publicProcedure.query(async ({ ctx }) => {
     const { db } = ctx;
 
     const instansi = await db.instansi.findMany();

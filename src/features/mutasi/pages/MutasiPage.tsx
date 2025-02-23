@@ -16,6 +16,7 @@ import TableHeadItem from "~/components/Table/TableHeadItem";
 import useModal from "~/hooks/useModal";
 import { api } from "~/utils/api";
 import AddMutasiModal from "../modals/AddMutasiModal";
+import withAuth from "~/hoc/withAuth";
 
 const MutasiPage = () => {
   const router = useRouter();
@@ -59,7 +60,7 @@ const MutasiPage = () => {
           <div className="relative w-fit self-end">
             <Input
               type="month"
-              className="w-full sm:w-72"
+              className="w-full"
               placeholder="Cari Mutasi"
               value={currentMonth}
               onChange={(ev) => handleOnChangeCurrentMonth(ev)}
@@ -135,4 +136,4 @@ const MutasiPage = () => {
   );
 };
 
-export default MutasiPage;
+export default withAuth(MutasiPage);

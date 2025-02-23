@@ -8,16 +8,15 @@
  */
 import { initTRPC, TRPCError } from "@trpc/server";
 import {
+  type CreateNextContextOptions,
   type NextApiRequest,
   type NextApiResponse,
-  type CreateNextContextOptions,
 } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
 import jwt from "jsonwebtoken";
 import { db } from "~/server/db";
-import { NextResponse } from "next/server";
 import { createToken, verifyToken } from "~/utils/jwt";
 import { setCookie } from "../cookies";
 

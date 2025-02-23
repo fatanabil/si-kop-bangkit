@@ -20,6 +20,7 @@ import { api } from "~/utils/api";
 import AddInstansiModal from "../modals/AddInstansiModal";
 import ConfirmDeleteInstansiModal from "../modals/ConfirmDeleteInstansiModal";
 import EditInstansiModal from "../modals/EditInstansiModal";
+import withAuth from "~/hoc/withAuth";
 
 const InstansiPage = () => {
   const router = useRouter();
@@ -72,7 +73,6 @@ const InstansiPage = () => {
             Tambah Instansi
           </Button>
           <Input
-            className="w-full sm:w-72"
             placeholder="Cari Instansi"
             onChange={(ev) => handleOnChangeSearchByName(ev)}
             value={searchByName}
@@ -160,4 +160,4 @@ const InstansiPage = () => {
   );
 };
 
-export default InstansiPage;
+export default withAuth(InstansiPage);

@@ -32,6 +32,7 @@ import { type AnggotaWithInstansi } from "~/schemas/anggota";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { MonthsList } from "~/components/MonthCalendar";
+import withAuth from "~/hoc/withAuth";
 
 interface AnggotaWithInstansiWithJumlah extends AnggotaWithInstansi {
   jumlah: number;
@@ -303,4 +304,4 @@ const exportToExcel = (data: InstansiGroup[], filename: string) => {
   );
 };
 
-export default TagihanPage;
+export default withAuth(TagihanPage);

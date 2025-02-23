@@ -21,6 +21,7 @@ import { api } from "~/utils/api";
 import AddAnggotaModals from "../modals/AddAnggotaModals";
 import ConfirmDeleteAnggotaModal from "../modals/ComfirmDeleteAnggotaModal";
 import EditAnggotaModal from "../modals/EditAnggotaModal";
+import withAuth from "~/hoc/withAuth";
 
 const AnggotaPage = () => {
   const router = useRouter();
@@ -206,4 +207,4 @@ const AnggotaPage = () => {
   );
 };
 
-export default AnggotaPage;
+export default withAuth(AnggotaPage);
