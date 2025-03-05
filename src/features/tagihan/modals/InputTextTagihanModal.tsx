@@ -7,16 +7,12 @@ import IconButton from "~/components/IconButton";
 import Loader from "~/components/Loader";
 import Toast from "~/components/Toast";
 import withClientSideRender from "~/hoc/withClientSideRender";
-import useLocalStorage from "~/hooks/useLocalStorage";
 import {
   type ListedAnggotaSchema,
   type UnlistedAnggotaSchema,
 } from "~/schemas/tagihan";
 import { api } from "~/utils/api";
-import {
-  TAGIHAN_LISTED_KEY_LOCAL_STORAGE,
-  TAGIHAN_UNLISTED_KEY_LOCAL_STORAGE,
-} from "~/utils/constants";
+import parseJumlah from "~/utils/parseJumlah";
 
 interface InputTextTagihanModalProps {
   isOpen: boolean;
@@ -55,6 +51,7 @@ const InputTextTagihanModal = ({
             duration={5000}
           />,
         );
+        setInputText("");
       },
     });
 
@@ -73,7 +70,7 @@ const InputTextTagihanModal = ({
       const finalRowItem = {
         no_rek: rowItem[0].padStart(10, "0"),
         nama_anggota: rowItem[1],
-        jumlah: parseInt(rowItem[2].replaceAll(",", "")),
+        jumlah: parseJumlah(rowItem[2]),
       };
       return finalRowItem;
     });
